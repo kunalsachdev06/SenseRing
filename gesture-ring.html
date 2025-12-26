@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture Ring - Touchless Interaction Reimagined</title>
+    <link rel="stylesheet" href="gesture-ring-style.css">
+</head>
+<body>
+    <!-- Landing Page / Hero Section -->
+    <section id="landing-page" class="section active">
+        <div class="background-animation">
+            <canvas id="particle-canvas"></canvas>
+        </div>
+        
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="title-main">Touchless Interaction.</span>
+                    <span class="title-sub">Reimagined.</span>
+                </h1>
+                <p class="hero-description">
+                    Control your digital world with natural hand gestures. 
+                    A wearable smart ring that understands your every move, 
+                    bridging the physical and digital seamlessly.
+                </p>
+                <div class="hero-features">
+                    <div class="feature-pill">
+                        <span class="feature-icon">✋</span>
+                        <span>Gesture Recognition</span>
+                    </div>
+                    <div class="feature-pill">
+                        <span class="feature-icon">⚡</span>
+                        <span>Real-time Feedback</span>
+                    </div>
+                    <div class="feature-pill">
+                        <span class="feature-icon">🎯</span>
+                        <span>Context Aware</span>
+                    </div>
+                </div>
+                <button class="cta-button" onclick="enterExperience()">
+                    <span>Enter Experience</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M7 3L14 10L7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- 3D Ring Visualization Container -->
+            <div class="hero-visual">
+                <div id="ring-container-3d"></div>
+                <div class="gesture-hint">
+                    <div class="hint-text">Simulating gesture detection...</div>
+                    <div class="hint-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HCI Principle Badge -->
+        <div class="hci-badge">
+            <span class="badge-label">HCI Principle:</span>
+            <span class="badge-value">Visibility of System Status</span>
+        </div>
+    </section>
+
+    <!-- Main Interface -->
+    <section id="main-interface" class="section">
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <div class="ring-icon-small"></div>
+                <span>Gesture Ring</span>
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-view="live">Live Interaction</button>
+                <button class="nav-tab" data-view="mapping">Gesture Mapping</button>
+                <button class="nav-tab" data-view="contexts">Context Modes</button>
+                <button class="nav-tab" data-view="rationale">HCI Rationale</button>
+            </div>
+            <button class="nav-back" onclick="backToLanding()" aria-label="Back to landing page">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M13 3L6 10L13 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </nav>
+
+        <!-- Live Interaction View -->
+        <div id="live-view" class="view active">
+            <div class="view-layout">
+                <div class="left-panel">
+                    <div class="panel-header">
+                        <h2>Ring Visualization</h2>
+                        <p class="panel-subtitle">Real-time gesture detection and feedback</p>
+                    </div>
+                    <div id="live-ring-container" class="live-ring-viz">
+                        <!-- Three.js Ring Scene -->
+                    </div>
+                    <div class="gesture-status">
+                        <div class="status-label">Current Gesture</div>
+                        <div class="status-value" id="current-gesture">Idle</div>
+                        <div class="status-confidence">
+                            <span>Confidence</span>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidence-fill"></div>
+                            </div>
+                            <span id="confidence-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="panel-header">
+                        <h2>System Response</h2>
+                        <p class="panel-subtitle">Actions triggered by your gestures</p>
+                    </div>
+                    <div class="response-area">
+                        <div class="response-card" id="response-display">
+                            <div class="response-icon">🤚</div>
+                            <div class="response-text">Waiting for gesture input...</div>
+                            <div class="response-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Mode:</span>
+                                    <span class="detail-value" id="current-mode">General</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Action:</span>
+                                    <span class="detail-value" id="current-action">None</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="feedback-timeline">
+                            <h3>Feedback Timeline</h3>
+                            <div id="timeline-items" class="timeline-list">
+                                <!-- Timeline items will be added dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gesture-simulator">
+                        <h3>Simulate Gestures</h3>
+                        <div class="gesture-buttons">
+                            <button class="gesture-btn" onclick="simulateGesture('swipe-left')">
+                                <span class="gesture-emoji">👈</span>
+                                <span>Swipe Left</span>
+                            </button>
+                            <button class="gesture-btn" onclick="simulateGesture('swipe-right')">
+                                <span class="gesture-emoji">👉</span>
+                                <span>Swipe Right</span>
+                            </button>
+                            <button class="gesture-btn" onclick="simulateGesture('tap')">
+                                <span class="gesture-emoji">👆</span>
+                                <span>Tap</span>
+                            </button>
+                            <button class="gesture-btn" onclick="simulateGesture('rotate')">
+                                <span class="gesture-emoji">🔄</span>
+                                <span>Rotate</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gesture Mapping View -->
+        <div id="mapping-view" class="view">
+            <div class="mapping-container">
+                <div class="mapping-header">
+                    <h2>Gesture → Action Mapping</h2>
+                    <p>Clear, intuitive, and customizable interaction patterns</p>
+                </div>
+                
+                <div class="mapping-grid">
+                    <div class="mapping-card">
+                        <div class="mapping-visual">
+                            <div class="gesture-animation swipe-left-anim"></div>
+                        </div>
+                        <div class="mapping-content">
+                            <h3>Swipe Left 👈</h3>
+                            <div class="mapping-description">
+                                Navigate to previous item, slide, or page
+                            </div>
+                            <div class="mapping-actions">
+                                <div class="action-tag">Previous Slide</div>
+                                <div class="action-tag">Back</div>
+                                <div class="action-tag">Undo</div>
+                            </div>
+                            <div class="hci-note">
+                                <strong>Natural Mapping:</strong> Left motion = previous/back action
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mapping-card">
+                        <div class="mapping-visual">
+                            <div class="gesture-animation swipe-right-anim"></div>
+                        </div>
+                        <div class="mapping-content">
+                            <h3>Swipe Right 👉</h3>
+                            <div class="mapping-description">
+                                Navigate to next item, slide, or page
+                            </div>
+                            <div class="mapping-actions">
+                                <div class="action-tag">Next Slide</div>
+                                <div class="action-tag">Forward</div>
+                                <div class="action-tag">Confirm</div>
+                            </div>
+                            <div class="hci-note">
+                                <strong>Consistency:</strong> Directional gesture matches cultural reading direction
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mapping-card">
+                        <div class="mapping-visual">
+                            <div class="gesture-animation tap-anim"></div>
+                        </div>
+                        <div class="mapping-content">
+                            <h3>Tap 👆</h3>
+                            <div class="mapping-description">
+                                Select, activate, or toggle current item
+                            </div>
+                            <div class="mapping-actions">
+                                <div class="action-tag">Select</div>
+                                <div class="action-tag">Play/Pause</div>
+                                <div class="action-tag">Toggle</div>
+                            </div>
+                            <div class="hci-note">
+                                <strong>Affordance:</strong> Tap mirrors physical button press
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mapping-card">
+                        <div class="mapping-visual">
+                            <div class="gesture-animation rotate-anim"></div>
+                        </div>
+                        <div class="mapping-content">
+                            <h3>Rotate 🔄</h3>
+                            <div class="mapping-description">
+                                Adjust volume, brightness, or rotate objects
+                            </div>
+                            <div class="mapping-actions">
+                                <div class="action-tag">Volume Control</div>
+                                <div class="action-tag">Brightness</div>
+                                <div class="action-tag">Zoom</div>
+                            </div>
+                            <div class="hci-note">
+                                <strong>Feedback:</strong> Continuous rotation provides analog control
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Context Modes View -->
+        <div id="contexts-view" class="view">
+            <div class="contexts-container">
+                <div class="contexts-header">
+                    <h2>Context-Aware Interaction</h2>
+                    <p>The same gesture behaves differently based on your current activity</p>
+                </div>
+
+                <div class="context-selector">
+                    <button class="context-btn active" data-context="presentation">
+                        <span class="context-icon">📊</span>
+                        <span>Presentation Mode</span>
+                    </button>
+                    <button class="context-btn" data-context="media">
+                        <span class="context-icon">🎵</span>
+                        <span>Media Control</span>
+                    </button>
+                    <button class="context-btn" data-context="accessibility">
+                        <span class="context-icon">♿</span>
+                        <span>Accessibility Mode</span>
+                    </button>
+                </div>
+
+                <div class="context-content">
+                    <!-- Presentation Mode -->
+                    <div class="context-panel active" data-panel="presentation">
+                        <div class="context-visual">
+                            <div class="mode-illustration presentation-ill"></div>
+                        </div>
+                        <div class="context-info">
+                            <h3>Presentation Mode</h3>
+                            <p class="context-desc">
+                                Control your presentations with natural hand movements. 
+                                No need to hold a clicker or look at controls.
+                            </p>
+                            <div class="context-mappings">
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👈 Swipe Left</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Previous Slide</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👉 Swipe Right</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Next Slide</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👆 Tap</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Highlight/Pointer</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">🔄 Rotate</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Zoom In/Out</span>
+                                </div>
+                            </div>
+                            <div class="hci-insight">
+                                <strong>HCI Benefit:</strong> Minimal cognitive load - focus on content, not controls
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Media Mode -->
+                    <div class="context-panel" data-panel="media">
+                        <div class="context-visual">
+                            <div class="mode-illustration media-ill"></div>
+                        </div>
+                        <div class="context-info">
+                            <h3>Media Control Mode</h3>
+                            <p class="context-desc">
+                                Control music and videos without touching your device. 
+                                Perfect for cooking, exercising, or when hands are busy.
+                            </p>
+                            <div class="context-mappings">
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👈 Swipe Left</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Previous Track</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👉 Swipe Right</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Next Track</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👆 Tap</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Play/Pause</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">🔄 Rotate</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Volume Control</span>
+                                </div>
+                            </div>
+                            <div class="hci-insight">
+                                <strong>HCI Benefit:</strong> Immediate feedback through audio changes
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accessibility Mode -->
+                    <div class="context-panel" data-panel="accessibility">
+                        <div class="context-visual">
+                            <div class="mode-illustration accessibility-ill"></div>
+                        </div>
+                        <div class="context-info">
+                            <h3>Accessibility Mode</h3>
+                            <p class="context-desc">
+                                Simplified, high-feedback gestures for users with motor challenges 
+                                or those requiring assistive technology.
+                            </p>
+                            <div class="context-mappings">
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👈 Swipe Left</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Speak Previous</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👉 Swipe Right</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Speak Next</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">👆 Tap</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Read Aloud</span>
+                                </div>
+                                <div class="context-map-item">
+                                    <span class="map-gesture">🔄 Rotate</span>
+                                    <span class="map-arrow">→</span>
+                                    <span class="map-action">Speech Rate</span>
+                                </div>
+                            </div>
+                            <div class="hci-insight">
+                                <strong>HCI Benefit:</strong> Universal accessibility - gesture control for everyone
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HCI Rationale View -->
+        <div id="rationale-view" class="view">
+            <div class="rationale-container">
+                <div class="rationale-header">
+                    <h2>HCI Design Rationale</h2>
+                    <p>Why this interaction design is intuitive, learnable, and effective</p>
+                </div>
+
+                <div class="rationale-grid">
+                    <div class="rationale-card">
+                        <div class="rationale-icon">👁️</div>
+                        <h3>Visibility of System Status</h3>
+                        <p>
+                            The system continuously shows gesture detection status, 
+                            confidence levels, and feedback. Users always know what 
+                            the ring is "seeing" and how the system is responding.
+                        </p>
+                        <div class="example-tag">Real-time gesture display • Confidence bar • Status indicators</div>
+                    </div>
+
+                    <div class="rationale-card">
+                        <div class="rationale-icon">⚡</div>
+                        <h3>Immediate Feedback</h3>
+                        <p>
+                            Every gesture produces instant visual, and contextual feedback. 
+                            Visual animations (ripples, waves, glows) confirm gesture recognition 
+                            within 100-200ms.
+                        </p>
+                        <div class="example-tag">Gesture animations • Sound cues • Visual confirmations</div>
+                    </div>
+
+                    <div class="rationale-card">
+                        <div class="rationale-icon">🧭</div>
+                        <h3>Natural Mapping</h3>
+                        <p>
+                            Gestures map to actions in intuitive ways: swipe left = previous, 
+                            swipe right = next, rotate = continuous control. This reduces 
+                            learning time and cognitive load.
+                        </p>
+                        <div class="example-tag">Spatial gestures • Directional logic • Physical metaphors</div>
+                    </div>
+
+                    <div class="rationale-card">
+                        <div class="rationale-icon">🧠</div>
+                        <h3>Minimal Cognitive Load</h3>
+                        <p>
+                            Only 4 core gestures to learn. Context-aware behavior means 
+                            the same gestures work everywhere, but adapt intelligently. 
+                            No complex command sequences.
+                        </p>
+                        <div class="example-tag">4 gestures only • Context adaptation • Simple mental model</div>
+                    </div>
+
+                    <div class="rationale-card">
+                        <div class="rationale-icon">🎯</div>
+                        <h3>Consistency</h3>
+                        <p>
+                            Gesture meanings remain consistent across all modes. 
+                            Visual feedback follows the same design language. 
+                            Interaction patterns are predictable.
+                        </p>
+                        <div class="example-tag">Uniform behavior • Consistent feedback • Predictable responses</div>
+                    </div>
+
+                    <div class="rationale-card">
+                        <div class="rationale-icon">📚</div>
+                        <h3>Learnability</h3>
+                        <p>
+                            New users can learn all gestures in under 2 minutes. 
+                            Visual demonstrations, clear labels, and practice mode 
+                            accelerate learning. No manual required.
+                        </p>
+                        <div class="example-tag">Visual tutorials • Practice simulator • Progressive disclosure</div>
+                    </div>
+
+                    <div class="rationale-card">
+                        <div class="rationale-icon">♿</div>
+                        <h3>Accessibility</h3>
+                        <p>
+                            Touchless control benefits users with motor impairments. 
+                            Large gesture zones reduce precision requirements. 
+                            Multi-modal feedback (visual, audio, haptic) supports diverse needs.
+                        </p>
+                        <div class="example-tag">Motor accessibility • Large interaction zones • Multi-modal feedback</div>
+                    </div>
+
+                    <div class="rationale-card">
+                        <div class="rationale-icon">🔄</div>
+                        <h3>Error Prevention & Recovery</h3>
+                        <p>
+                            Confidence thresholds prevent accidental triggers. 
+                            Clear feedback allows users to verify actions before 
+                            they complete. Easy undo through reverse gestures.
+                        </p>
+                        <div class="example-tag">Confidence filtering • Clear previews • Undo support</div>
+                    </div>
+                </div>
+
+                <div class="innovation-section">
+                    <h3>Innovation Highlights</h3>
+                    <div class="innovation-list">
+                        <div class="innovation-item">
+                            <span class="innovation-number">01</span>
+                            <div class="innovation-content">
+                                <h4>Spatial Gesture Language</h4>
+                                <p>Moving beyond screen-based interaction to 3D spatial control</p>
+                            </div>
+                        </div>
+                        <div class="innovation-item">
+                            <span class="innovation-number">02</span>
+                            <div class="innovation-content">
+                                <h4>Context-Aware Adaptation</h4>
+                                <p>Same gestures, different meanings based on user activity</p>
+                            </div>
+                        </div>
+                        <div class="innovation-item">
+                            <span class="innovation-number">03</span>
+                            <div class="innovation-content">
+                                <h4>Micro-wearable Power</h4>
+                                <p>Ring form factor - always with you, never in the way</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Main JavaScript -->
+    <script src="gesture-ring-script.js"></script>
+</body>
+</html>
