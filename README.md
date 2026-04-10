@@ -24,19 +24,19 @@
 
 ### Run the Project
 
-**Method 1: Direct Open (Easiest)**
-```
-1. Navigate to: C:\Users\KUNAL\Downloads\VS Code\HCI\
-2. Double-click: gesture-ring.html
-3. Opens in your default browser
-```
-
-**Method 2: VS Code Live Server (Recommended)**
+**Method 1: VS Code Live Server (Recommended)**
 ```
 1. Open folder in VS Code
-2. Right-click gesture-ring.html
+2. Right-click index.html
 3. Select "Open with Live Server"
 ```
+
+**Method 2: Direct Open (UI Only)**
+```
+1. Navigate to: C:\Users\KUNAL\Downloads\VS Code\HCI\
+2. Double-click: index.html
+```
+Note: Web Bluetooth requires Live Server/HTTPS. Direct file open is UI-only.
 
 ### First Time Use
 1. **Landing Page** - See animated 3D ring with particle background
@@ -63,6 +63,7 @@
 - Feedback timeline logging last 10 gestures
 - Gesture simulator with 4 interactive buttons
 - Current gesture status display
+- BLE connect button with connection status indicator
 
 ### 🗺️ Gesture Mapping View
 - 4 gesture cards with auto-playing animations
@@ -72,9 +73,8 @@
 - Interactive hover effects
 
 ### 🎭 Context Modes View
-- **Presentation Mode** 📊 - Control slides and presentations
 - **Media Control Mode** 🎵 - Manage music and videos
-- **Accessibility Mode** ♿ - Enhanced assistive features
+- **Presentation Mode** 📊 - Scroll up/down for slides and content
 - Visual mode selector with smooth transitions
 - Gesture → Action mappings per context
 
@@ -112,10 +112,10 @@ The same gestures produce different actions based on user activity:
 
 ### 📊 Presentation Mode
 ```
-Swipe Left   → Previous Slide
-Swipe Right  → Next Slide  
-Tap          → Highlight/Pointer
-Rotate       → Zoom In/Out
+Swipe Left   → Scroll Down (Prev)
+Swipe Right  → Scroll Up (Next)
+Tap          → Select
+Rotate       → Scroll Control
 ```
 
 ### 🎵 Media Control Mode
@@ -124,14 +124,6 @@ Swipe Left   → Previous Track
 Swipe Right  → Next Track
 Tap          → Play/Pause
 Rotate       → Volume Control
-```
-
-### ♿ Accessibility Mode
-```
-Swipe Left   → Speak Previous
-Swipe Right  → Speak Next
-Tap          → Read Aloud
-Rotate       → Speech Rate
 ```
 
 ---
@@ -182,7 +174,8 @@ Rotate       → Speech Rate
     ├── Particle System
     ├── Three.js 3D Scenes
     ├── Gesture Simulation
-    └── Navigation Logic
+   ├── Navigation Logic
+   └── BLE + Media Bridge Integration
 ```
 
 ### Performance
@@ -197,9 +190,10 @@ Rotate       → Speech Rate
 
 ```
 HCI/
-├── gesture-ring.html              # Main application (OPEN THIS!)
+├── index.html                     # Main application (OPEN THIS!)
 ├── gesture-ring-style.css         # Complete styling system
 ├── gesture-ring-script.js         # JavaScript + Three.js logic
+├── local-media-bridge.js          # Local OS media bridge (Node)
 ├── README.md                      # This file
 ├── GESTURE-RING-README.md         # Detailed documentation
 ├── QUICK-START.md                 # Getting started guide
@@ -267,7 +261,7 @@ HCI/
 - Highlight HCI notes on cards
 
 **3:00-4:00 - Context Modes**
-- Switch between modes (Presentation → Media → Accessibility)
+- Switch between modes (Media → Presentation)
 - Show how same gestures adapt
 - Explain context awareness
 
@@ -326,7 +320,7 @@ Text:        #ffffff → #a0a0b8 (White to Gray)
 ### Before Presentation
 
 **Visual Quality**
-- [ ] Open gesture-ring.html
+- [ ] Open index.html
 - [ ] Landing page loads with animated background
 - [ ] 3D ring visible and rotating
 - [ ] "Enter Experience" button works
@@ -340,7 +334,7 @@ Text:        #ffffff → #a0a0b8 (White to Gray)
 - [ ] Confidence bar fills up
 - [ ] Response card updates
 - [ ] Timeline adds entries
-- [ ] Context switching works
+- [ ] Context switching works (Media ↔ Presentation)
 - [ ] Back button returns to landing
 
 **Content**
@@ -386,9 +380,31 @@ Text:        #ffffff → #a0a0b8 (White to Gray)
 **Cause:** JavaScript error  
 **Fix:** Open console (F12), check for errors
 
+### Issue: BLE not connecting
+**Cause:** Web Bluetooth blocked without HTTPS/Live Server  
+**Fix:** Use Live Server or HTTPS and a Chromium browser
+
+### Issue: Media keys not controlling the laptop
+**Cause:** Local bridge not running  
+**Fix:** Run `node local-media-bridge.js` before connecting
+
 ### Issue: No Scrolling
 **Cause:** Height constraints  
 **Fix:** Already fixed in latest version
+
+---
+
+## 🔌 BLE + Local Media Bridge
+
+To control system media you must run the local bridge:
+```
+node local-media-bridge.js
+```
+This opens `http://localhost:3199/command` for the web app.
+
+Supported commands:
+- Media: PLAY_PAUSE, NEXT, PREV, VOL_UP, VOL_DOWN
+- Presentation: SCROLL_UP, SCROLL_DOWN
 
 ---
 
@@ -425,7 +441,7 @@ Text:        #ffffff → #a0a0b8 (White to Gray)
 ## 🎯 Quick Facts
 
 - **Total Gestures:** 4 (Swipe Left/Right, Tap, Rotate)
-- **Context Modes:** 3 (Presentation, Media, Accessibility)
+- **Context Modes:** 2 (Media, Presentation)
 - **HCI Principles:** 10 (All Nielsen heuristics)
 - **Views:** 5 (Landing + 4 interface views)
 - **Code Lines:** 2,682 (HTML + CSS + JS)
@@ -473,9 +489,9 @@ This is a **complete, production-grade HCI project** that:
 
 ## 📞 Quick Reference
 
-**Main File:** `gesture-ring.html`  
+**Main File:** `index.html`  
 **Location:** `C:\Users\KUNAL\Downloads\VS Code\HCI\`  
-**To Run:** Double-click gesture-ring.html  
+**To Run:** Open index.html with Live Server  
 **Demo Time:** 5 minutes recommended  
 
 ---
