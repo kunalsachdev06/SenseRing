@@ -114,6 +114,10 @@
                     <div class="panel-header">
                         <h2>System Response</h2>
                         <p class="panel-subtitle">Actions triggered by your gestures</p>
+                        <div class="ring-connection-controls">
+                            <button id="connect-ring-btn" class="connect-ring-btn" type="button">Connect Ring</button>
+                            <span id="ble-connection-status" class="connection-status disconnected">Disconnected ❌</span>
+                        </div>
                     </div>
                     <div class="response-area">
                         <div class="response-card" id="response-display">
@@ -265,23 +269,19 @@
                 </div>
 
                 <div class="context-selector">
-                    <button class="context-btn active" data-context="presentation">
-                        <span class="context-icon">📊</span>
-                        <span>Presentation Mode</span>
-                    </button>
-                    <button class="context-btn" data-context="media">
+                    <button class="context-btn active" data-context="media">
                         <span class="context-icon">🎵</span>
                         <span>Media Control</span>
                     </button>
-                    <button class="context-btn" data-context="accessibility">
-                        <span class="context-icon">♿</span>
-                        <span>Accessibility Mode</span>
+                    <button class="context-btn" data-context="presentation">
+                        <span class="context-icon">📊</span>
+                        <span>Presentation Mode</span>
                     </button>
                 </div>
 
                 <div class="context-content">
                     <!-- Presentation Mode -->
-                    <div class="context-panel active" data-panel="presentation">
+                    <div class="context-panel" data-panel="presentation">
                         <div class="context-visual">
                             <div class="mode-illustration presentation-ill"></div>
                         </div>
@@ -295,22 +295,22 @@
                                 <div class="context-map-item">
                                     <span class="map-gesture">👈 Swipe Left</span>
                                     <span class="map-arrow">→</span>
-                                    <span class="map-action">Previous Slide</span>
+                                    <span class="map-action">Scroll Down (Prev)</span>
                                 </div>
                                 <div class="context-map-item">
                                     <span class="map-gesture">👉 Swipe Right</span>
                                     <span class="map-arrow">→</span>
-                                    <span class="map-action">Next Slide</span>
+                                    <span class="map-action">Scroll Up (Next)</span>
                                 </div>
                                 <div class="context-map-item">
                                     <span class="map-gesture">👆 Tap</span>
                                     <span class="map-arrow">→</span>
-                                    <span class="map-action">Highlight/Pointer</span>
+                                    <span class="map-action">Select</span>
                                 </div>
                                 <div class="context-map-item">
                                     <span class="map-gesture">🔄 Rotate</span>
                                     <span class="map-arrow">→</span>
-                                    <span class="map-action">Zoom In/Out</span>
+                                    <span class="map-action">Scroll Control</span>
                                 </div>
                             </div>
                             <div class="hci-insight">
@@ -320,7 +320,7 @@
                     </div>
 
                     <!-- Media Mode -->
-                    <div class="context-panel" data-panel="media">
+                    <div class="context-panel active" data-panel="media">
                         <div class="context-visual">
                             <div class="mode-illustration media-ill"></div>
                         </div>
@@ -358,44 +358,6 @@
                         </div>
                     </div>
 
-                    <!-- Accessibility Mode -->
-                    <div class="context-panel" data-panel="accessibility">
-                        <div class="context-visual">
-                            <div class="mode-illustration accessibility-ill"></div>
-                        </div>
-                        <div class="context-info">
-                            <h3>Accessibility Mode</h3>
-                            <p class="context-desc">
-                                Simplified, high-feedback gestures for users with motor challenges 
-                                or those requiring assistive technology.
-                            </p>
-                            <div class="context-mappings">
-                                <div class="context-map-item">
-                                    <span class="map-gesture">👈 Swipe Left</span>
-                                    <span class="map-arrow">→</span>
-                                    <span class="map-action">Speak Previous</span>
-                                </div>
-                                <div class="context-map-item">
-                                    <span class="map-gesture">👉 Swipe Right</span>
-                                    <span class="map-arrow">→</span>
-                                    <span class="map-action">Speak Next</span>
-                                </div>
-                                <div class="context-map-item">
-                                    <span class="map-gesture">👆 Tap</span>
-                                    <span class="map-arrow">→</span>
-                                    <span class="map-action">Read Aloud</span>
-                                </div>
-                                <div class="context-map-item">
-                                    <span class="map-gesture">🔄 Rotate</span>
-                                    <span class="map-arrow">→</span>
-                                    <span class="map-action">Speech Rate</span>
-                                </div>
-                            </div>
-                            <div class="hci-insight">
-                                <strong>HCI Benefit:</strong> Universal accessibility - gesture control for everyone
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

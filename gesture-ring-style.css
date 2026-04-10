@@ -444,13 +444,16 @@ body {
 /* View Management */
 .view {
     display: none;
-    padding: var(--spacing-md) var(--spacing-xl);
-    padding-bottom: var(--spacing-2xl);
-    padding-bottom: 4rem;
+    padding: 0 var(--spacing-xl) 4rem;
 }
 
 .view.active {
     display: block;
+}
+
+.view h2 {
+    margin-top: 0;
+    padding-top: 0;
 }
 
 /* ===================================
@@ -472,14 +475,67 @@ body {
     gap: var(--spacing-lg);
 }
 
+.panel-header {
+    margin: 0;
+    padding: 0;
+}
+
 .panel-header h2 {
     font-size: 1.8rem;
-    margin-bottom: var(--spacing-xs);
+    margin: 0 0 var(--spacing-xs) 0;
+    padding: 0;
 }
 
 .panel-subtitle {
     color: var(--text-secondary);
     font-size: 0.95rem;
+    margin: 0;
+}
+
+.ring-connection-controls {
+    margin-top: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.connect-ring-btn {
+    border: 1px solid var(--primary);
+    background: rgba(99, 102, 241, 0.16);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.connect-ring-btn:hover {
+    background: rgba(99, 102, 241, 0.3);
+}
+
+.connect-ring-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.connection-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.connection-status.disconnected {
+    color: var(--error);
+}
+
+.connection-status.connecting {
+    color: var(--warning);
+}
+
+.connection-status.connected {
+    color: var(--success);
 }
 
 /* Live Ring Visualization */
@@ -713,6 +769,14 @@ body {
 
 .gesture-btn:active {
     transform: scale(0.98);
+}
+
+.gesture-btn.disabled,
+.gesture-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 .gesture-emoji {
@@ -1307,7 +1371,15 @@ body {
     }
 
     .view {
-        padding: var(--spacing-sm);
+        padding: 0 var(--spacing-sm) 3rem;
+    }
+
+    .ring-connection-controls {
+        width: 100%;
+    }
+
+    .connect-ring-btn {
+        width: 100%;
     }
 
     .panel-header h2 {
@@ -1425,6 +1497,8 @@ body {
         transform: rotate(90deg);
     }
 }
+
+
 
 /* ===================================
    UTILITY CLASSES

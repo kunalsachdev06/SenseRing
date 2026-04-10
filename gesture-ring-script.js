@@ -10,15 +10,32 @@
 const AppState = {
     currentSection: 'landing',
     currentView: 'live',
-    currentContext: 'presentation',
+    currentContext: 'media',
     currentGesture: 'idle',
     gestureConfidence: 0,
     currentMode: 'General',
     timeline: [],
     ring3D: null,
     ringScene: null,
-    liveRingScene: null
+    liveRingScene: null,
+    bleDevice: null,
+    bleCharacteristic: null,
+    isBleConnected: false,
+    simulationInterval: null,
+    gestureResetTimer: null,
+    heroResizeHandler: null,
+    liveResizeHandler: null
 };
+
+const BLE_CONFIG = {
+    deviceName: 'SmartRing',
+    serviceUUID: '12345678-1234-1234-1234-123456789abc',
+    characteristicUUID: 'abcd1234-ab12-ab12-ab12-abcdef123456'
+};
+
+const MEDIA_BRIDGE_URL = 'http://localhost:3199/command';
+
+let lastRotationTime = 0;
 
 // ============================================
 // INITIALIZATION
@@ -33,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set up navigation
     setupNavigation();
+
+    // Set up BLE controls
+    initBleControls();
     
     // Set up context switching
     setupContextSwitching();
@@ -220,13 +240,16 @@ function initHero3DRing() {
     animate();
     
     // Handle window resize
-    window.addEventListener('resize', () => {
-        if (container.offsetWidth > 0) {
-            camera.aspect = container.offsetWidth / container.offsetHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.offsetWidth, container.offsetHeight);
-        }
-    });
+    if (!AppState.heroResizeHandler) {
+        AppState.heroResizeHandler = () => {
+            if (container.offsetWidth > 0) {
+                camera.aspect = container.offsetWidth / container.offsetHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+            }
+        };
+        window.addEventListener('resize', AppState.heroResizeHandler);
+    }
     
     // Simulate gesture detection
     simulateGestureDetection();
@@ -311,13 +334,16 @@ function initLiveRing() {
     animate();
     
     // Handle resize
-    window.addEventListener('resize', () => {
-        if (container.offsetWidth > 0) {
-            camera.aspect = container.offsetWidth / container.offsetHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.offsetWidth, container.offsetHeight);
-        }
-    });
+    if (!AppState.liveResizeHandler) {
+        AppState.liveResizeHandler = () => {
+            if (container.offsetWidth > 0) {
+                camera.aspect = container.offsetWidth / container.offsetHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+            }
+        };
+        window.addEventListener('resize', AppState.liveResizeHandler);
+    }
 }
 
 // ============================================
@@ -328,7 +354,11 @@ function simulateGestureDetection() {
     const gestures = ['swipe-left', 'swipe-right', 'tap', 'rotate', 'idle'];
     let currentIndex = 0;
     
-    setInterval(() => {
+    if (AppState.simulationInterval) {
+        clearInterval(AppState.simulationInterval);
+    }
+
+    AppState.simulationInterval = setInterval(() => {
         if (AppState.currentSection === 'landing') {
             currentIndex = (currentIndex + 1) % gestures.length;
             const gesture = gestures[currentIndex];
@@ -363,8 +393,9 @@ function triggerGestureEffect(gesture) {
 }
 
 function animateSwipe(ringGroup, direction) {
-    const startRotation = ringGroup.rotation.z;
-    const targetRotation = startRotation + (direction * Math.PI / 4);
+    ringGroup.rotation.z = 0;
+    const startRotation = 0;
+    const targetRotation = direction * Math.PI / 4;
     const duration = 500;
     const startTime = Date.now();
     
@@ -390,6 +421,8 @@ function animateSwipe(ringGroup, direction) {
                     
                     if (progress < 1) {
                         requestAnimationFrame(reset);
+                    } else {
+                        ringGroup.rotation.z = 0;
                     }
                 }
                 reset();
@@ -465,6 +498,11 @@ function enterExperience() {
     setTimeout(() => {
         mainInterface.classList.add('active');
         AppState.currentSection = 'main';
+
+        if (AppState.simulationInterval) {
+            clearInterval(AppState.simulationInterval);
+            AppState.simulationInterval = null;
+        }
         
         // Initialize live ring if not already done
         initLiveRing();
@@ -481,6 +519,8 @@ function backToLanding() {
     setTimeout(() => {
         landingPage.classList.add('active');
         AppState.currentSection = 'landing';
+        simulateGestureDetection();
+        disposeLiveRing();
     }, 300);
 }
 
@@ -515,6 +555,8 @@ function switchView(viewName) {
         // Initialize live ring when switching to live view
         if (viewName === 'live') {
             setTimeout(() => initLiveRing(), 100);
+        } else {
+            disposeLiveRing();
         }
     }
 }
@@ -524,7 +566,15 @@ function switchView(viewName) {
 // ============================================
 
 function simulateGesture(gestureType) {
-    console.log(`👆 Simulating gesture: ${gestureType}`);
+    if (AppState.isBleConnected) {
+        return;
+    }
+
+    processGestureInput(gestureType, 'simulator');
+}
+
+function processGestureInput(gestureType, source = 'ring') {
+    console.log(`👆 Processing gesture: ${gestureType} from ${source}`);
     
     // Update gesture status
     AppState.currentGesture = gestureType;
@@ -540,17 +590,37 @@ function simulateGesture(gestureType) {
     
     // Update response card
     updateResponseCard(gestureType);
+    flashGestureUI();
     
     // Add to timeline
-    addToTimeline(gestureType);
+    addToTimeline(gestureType, source);
     
     // Reset after delay
-    setTimeout(() => {
+    if (AppState.gestureResetTimer) {
+        clearTimeout(AppState.gestureResetTimer);
+    }
+
+    AppState.gestureResetTimer = setTimeout(() => {
         AppState.currentGesture = 'idle';
         document.getElementById('current-gesture').textContent = 'Idle';
         document.getElementById('confidence-fill').style.width = '0%';
         document.getElementById('confidence-value').textContent = '0%';
     }, 3000);
+}
+
+function flashGestureUI() {
+    const card = document.querySelector('.response-card');
+    if (!card) {
+        return;
+    }
+
+    card.style.transform = 'scale(1.05)';
+    card.style.boxShadow = '0 0 25px rgba(99,102,241,0.6)';
+
+    setTimeout(() => {
+        card.style.transform = 'scale(1)';
+        card.style.boxShadow = '';
+    }, 150);
 }
 
 function updateGestureDisplay(gesture) {
@@ -559,7 +629,10 @@ function updateGestureDisplay(gesture) {
         'swipe-left': 'Swipe Left 👈',
         'swipe-right': 'Swipe Right 👉',
         'tap': 'Tap 👆',
-        'rotate': 'Rotate 🔄'
+        'rotate': 'Rotate 🔄',
+        'rotate-left': 'Rotate Left ↺',
+        'rotate-right': 'Rotate Right ↻',
+        'mode': 'Mode Switch 🔁'
     };
     
     gestureDisplay.textContent = gestureNames[gesture] || gesture;
@@ -617,6 +690,15 @@ function triggerLiveRingGesture(gesture) {
         case 'rotate':
             animateSpin(ringGroup);
             break;
+        case 'rotate-left':
+            animateSwipe(ringGroup, -1);
+            break;
+        case 'rotate-right':
+            animateSwipe(ringGroup, 1);
+            break;
+        case 'mode':
+            animateSpin(ringGroup);
+            break;
     }
 }
 
@@ -629,11 +711,7 @@ function animateJump(ringGroup) {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        if (progress < 0.5) {
-            ringGroup.position.y = startY + Math.sin(progress * Math.PI) * 0.5;
-        } else {
-            ringGroup.position.y = startY + Math.sin(progress * Math.PI) * 0.5;
-        }
+        ringGroup.position.y = startY + Math.sin(progress * Math.PI) * 0.5;
         
         if (progress < 1) {
             requestAnimationFrame(animate);
@@ -673,29 +751,32 @@ function updateResponseCard(gesture) {
     
     // Gesture mappings based on context
     const actions = {
-        'presentation': {
-            'swipe-left': { icon: '📊', text: 'Previous Slide', action: 'Navigate Back' },
-            'swipe-right': { icon: '📊', text: 'Next Slide', action: 'Navigate Forward' },
-            'tap': { icon: '🎯', text: 'Highlight Active', action: 'Toggle Pointer' },
-            'rotate': { icon: '🔍', text: 'Zoom Adjusted', action: 'Zoom In/Out' }
-        },
         'media': {
             'swipe-left': { icon: '⏮️', text: 'Previous Track', action: 'Media Control' },
             'swipe-right': { icon: '⏭️', text: 'Next Track', action: 'Media Control' },
             'tap': { icon: '⏯️', text: 'Play/Pause', action: 'Toggle Playback' },
-            'rotate': { icon: '🔊', text: 'Volume Changed', action: 'Volume Control' }
+            'rotate': { icon: '🔊', text: 'Volume Changed', action: 'Volume Control' },
+            'rotate-left': { icon: '🔉', text: 'Volume Down', action: 'Lower Volume' },
+            'rotate-right': { icon: '🔊', text: 'Volume Up', action: 'Raise Volume' },
+            'mode': { icon: '🎛️', text: 'Mode Changed', action: 'Switched Interaction Context' }
         },
-        'accessibility': {
-            'swipe-left': { icon: '🔊', text: 'Previous Item', action: 'Speak Previous' },
-            'swipe-right': { icon: '🔊', text: 'Next Item', action: 'Speak Next' },
-            'tap': { icon: '📢', text: 'Reading Aloud', action: 'Text-to-Speech' },
-            'rotate': { icon: '⚡', text: 'Speed Adjusted', action: 'Speech Rate' }
+        'presentation': {
+            'swipe-left': { icon: '📄', text: 'Previous (Scroll Down)', action: 'Scroll Down' },
+            'swipe-right': { icon: '📄', text: 'Next (Scroll Up)', action: 'Scroll Up' },
+            'tap': { icon: '✅', text: 'Select', action: 'Confirm Selection' },
+            'rotate': { icon: '📄', text: 'Scroll', action: 'Scroll Control' },
+            'rotate-left': { icon: '📄', text: 'Scroll Down', action: 'Scroll Down' },
+            'rotate-right': { icon: '📄', text: 'Scroll Up', action: 'Scroll Up' },
+            'mode': { icon: '🎛️', text: 'Mode Changed', action: 'Switched Interaction Context' }
         },
         'general': {
             'swipe-left': { icon: '👈', text: 'Swipe Left Detected', action: 'Generic Back' },
             'swipe-right': { icon: '👉', text: 'Swipe Right Detected', action: 'Generic Forward' },
             'tap': { icon: '👆', text: 'Tap Detected', action: 'Generic Select' },
-            'rotate': { icon: '🔄', text: 'Rotation Detected', action: 'Generic Adjust' }
+            'rotate': { icon: '🔄', text: 'Rotation Detected', action: 'Generic Adjust' },
+            'rotate-left': { icon: '↺', text: 'Rotate Left Detected', action: 'Generic Decrease' },
+            'rotate-right': { icon: '↻', text: 'Rotate Right Detected', action: 'Generic Increase' },
+            'mode': { icon: '🎛️', text: 'Mode Changed', action: 'Switched Interaction Context' }
         }
     };
     
@@ -716,7 +797,7 @@ function updateResponseCard(gesture) {
     }
 }
 
-function addToTimeline(gesture) {
+function addToTimeline(gesture, source = 'ring') {
     const timeline = document.getElementById('timeline-items');
     const timestamp = new Date().toLocaleTimeString();
     
@@ -724,14 +805,17 @@ function addToTimeline(gesture) {
         'swipe-left': 'Swipe Left',
         'swipe-right': 'Swipe Right',
         'tap': 'Tap',
-        'rotate': 'Rotate'
+        'rotate': 'Rotate',
+        'rotate-left': 'Rotate Left',
+        'rotate-right': 'Rotate Right',
+        'mode': 'Mode Switch'
     };
     
     const timelineItem = document.createElement('div');
     timelineItem.className = 'timeline-item';
     timelineItem.innerHTML = `
         <span class="timeline-time">${timestamp}</span>
-        <span class="timeline-content">${gestureNames[gesture]} → Action executed successfully</span>
+        <span class="timeline-content">${gestureNames[gesture]} → Action executed successfully (${source})</span>
     `;
     
     // Add to top
@@ -746,7 +830,8 @@ function addToTimeline(gesture) {
     AppState.timeline.unshift({
         timestamp,
         gesture,
-        action: gestureNames[gesture]
+        action: gestureNames[gesture],
+        source
     });
 }
 
@@ -761,10 +846,6 @@ function setupContextSwitching() {
         button.addEventListener('click', () => {
             const context = button.getAttribute('data-context');
             switchContext(context);
-            
-            // Update active button
-            contextButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
         });
     });
 }
@@ -783,6 +864,242 @@ function switchContext(contextName) {
     if (targetPanel) {
         targetPanel.classList.add('active');
     }
+
+    const contextButtons = document.querySelectorAll('.context-btn');
+    contextButtons.forEach(btn => {
+        const isActive = btn.getAttribute('data-context') === contextName;
+        btn.classList.toggle('active', isActive);
+    });
+}
+
+function getNextContext(currentContext) {
+    const order = ['media', 'presentation'];
+    const currentIndex = order.indexOf(currentContext);
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % order.length;
+    return order[nextIndex];
+}
+
+function cycleContextMode() {
+    const nextContext = getNextContext(AppState.currentContext);
+    switchContext(nextContext);
+}
+
+function initBleControls() {
+    const connectButton = document.getElementById('connect-ring-btn');
+    if (!connectButton) {
+        return;
+    }
+
+    connectButton.addEventListener('click', async () => {
+        await handleConnect();
+    });
+
+    setConnected(false);
+}
+
+function setConnectionStatus(state, label) {
+    const statusEl = document.getElementById('ble-connection-status');
+    const connectButton = document.getElementById('connect-ring-btn');
+    if (!statusEl || !connectButton) {
+        return;
+    }
+
+    statusEl.textContent = label;
+    statusEl.classList.remove('disconnected', 'connecting', 'connected');
+    statusEl.classList.add(state);
+
+    if (state === 'connected') {
+        connectButton.textContent = 'Disconnect Ring';
+        connectButton.disabled = false;
+    } else if (state === 'connecting') {
+        connectButton.textContent = 'Connecting...';
+        connectButton.disabled = true;
+    } else {
+        connectButton.textContent = 'Connect Ring';
+        connectButton.disabled = false;
+    }
+}
+
+function setSimulatorEnabled(enabled) {
+    const simulatorButtons = document.querySelectorAll('.gesture-btn');
+    simulatorButtons.forEach(button => {
+        button.disabled = !enabled;
+        button.classList.toggle('disabled', !enabled);
+    });
+}
+
+function handleRotation(direction, source = 'ble') {
+    const now = Date.now();
+
+    if (now - lastRotationTime < 200) {
+        return;
+    }
+
+    lastRotationTime = now;
+    processGestureInput(direction, source);
+}
+
+function setConnected(state) {
+    AppState.isBleConnected = state;
+    setConnectionStatus(state ? 'connected' : 'disconnected', state ? 'Connected ✅' : 'Disconnected ❌');
+    setSimulatorEnabled(!state);
+
+    if (state) {
+        const demoStatus = document.getElementById('status');
+        if (demoStatus) {
+            demoStatus.innerText = 'Connected to Smart Ring (Live Hardware)';
+        }
+    }
+}
+
+async function handleConnect() {
+    if (AppState.isBleConnected) {
+        disconnectBLE();
+        return;
+    }
+
+    if (!navigator.bluetooth) {
+        addToTimeline('tap', 'ble-unavailable');
+        alert('Web Bluetooth is not supported in this browser. Use Chrome or Edge over HTTPS.');
+        return;
+    }
+
+    try {
+        setConnectionStatus('connecting', 'Connecting...');
+
+        AppState.bleDevice = await navigator.bluetooth.requestDevice({
+            filters: [{ name: BLE_CONFIG.deviceName }],
+            optionalServices: [BLE_CONFIG.serviceUUID]
+        });
+
+        AppState.bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+        const server = await AppState.bleDevice.gatt.connect();
+        const service = await server.getPrimaryService(BLE_CONFIG.serviceUUID);
+        AppState.bleCharacteristic = await service.getCharacteristic(BLE_CONFIG.characteristicUUID);
+
+        await AppState.bleCharacteristic.startNotifications();
+        AppState.bleCharacteristic.addEventListener('characteristicvaluechanged', onBLEData);
+
+        setConnected(true);
+    } catch (error) {
+        console.error('BLE connection failed:', error);
+        setConnected(false);
+    }
+}
+
+function disconnectBLE() {
+    if (AppState.bleDevice && AppState.bleDevice.gatt.connected) {
+        AppState.bleDevice.gatt.disconnect();
+    }
+}
+
+function onDisconnected() {
+    if (!AppState.isBleConnected) {
+        return;
+    }
+    setConnected(false);
+}
+
+function onBLEData(event) {
+    const decoder = new TextDecoder('utf-8');
+    const cmd = decoder.decode(event.target.value).trim();
+    handleCommand(cmd);
+}
+
+function handleCommand(cmd) {
+    const commandToGesture = {
+        PLAY_PAUSE: 'tap',
+        NEXT: 'swipe-right',
+        PREV: 'swipe-left',
+        VOL_UP: 'rotate-right',
+        VOL_DOWN: 'rotate-left',
+        SLIDE_NEXT: 'rotate-right',
+        SLIDE_PREV: 'rotate-left',
+        SELECT: 'tap'
+    };
+
+    const mediaCommandMap = {
+        PLAY_PAUSE: 'PLAY_PAUSE',
+        NEXT: 'NEXT',
+        PREV: 'PREV',
+        VOL_UP: 'VOL_UP',
+        VOL_DOWN: 'VOL_DOWN'
+    };
+
+    const presentationCommandMap = {
+        SLIDE_NEXT: 'SCROLL_UP',
+        SLIDE_PREV: 'SCROLL_DOWN'
+    };
+
+    if (cmd === 'MODE_DEFAULT') {
+        switchContext('media');
+        processGestureInput('mode', 'ble');
+        return;
+    }
+
+    if (cmd === 'MODE_PRESENTATION') {
+        switchContext('presentation');
+        processGestureInput('mode', 'ble');
+        return;
+    }
+
+    if (AppState.currentContext === 'media') {
+        const mediaCommand = mediaCommandMap[cmd];
+        if (mediaCommand) {
+            sendSystemMediaCommand(mediaCommand);
+        }
+    }
+
+    if (AppState.currentContext === 'presentation') {
+        const presentationCommand = presentationCommandMap[cmd];
+        if (presentationCommand) {
+            sendSystemMediaCommand(presentationCommand);
+        }
+    }
+
+    const mappedGesture = commandToGesture[cmd];
+    if (!mappedGesture) {
+        return;
+    }
+
+    if (mappedGesture === 'rotate-left' || mappedGesture === 'rotate-right') {
+        handleRotation(mappedGesture, 'ble');
+        return;
+    }
+
+    processGestureInput(mappedGesture, 'ble');
+}
+
+async function sendSystemMediaCommand(command) {
+    try {
+        await fetch(MEDIA_BRIDGE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command })
+        });
+    } catch (error) {
+        console.error('Media bridge error:', error);
+    }
+}
+
+function disposeLiveRing() {
+    if (!AppState.liveRingScene) {
+        return;
+    }
+
+    const { renderer } = AppState.liveRingScene;
+    const container = document.getElementById('live-ring-container');
+
+    if (renderer) {
+        renderer.dispose();
+    }
+
+    if (container) {
+        container.innerHTML = '';
+    }
+
+    AppState.liveRingScene = null;
 }
 
 // ============================================
@@ -809,6 +1126,7 @@ window.backToLanding = backToLanding;
 window.simulateGesture = simulateGesture;
 window.switchView = switchView;
 window.switchContext = switchContext;
+window.connectRing = handleConnect;
 
 // ============================================
 // HCI PRINCIPLES LOGGER
