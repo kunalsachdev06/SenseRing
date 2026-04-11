@@ -1534,3 +1534,233 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-light);
 }
+
+/* ===================================
+   LAYOUT FIXES (replacing !important block)
+   =================================== */
+
+#main-interface { margin-top: 0; padding-top: 0; }
+.view { padding-top: 10px; margin-top: 0; }
+.panel-header { margin-top: 0; padding-top: 0; }
+.panel-header h2 { margin-top: 0; }
+.top-nav { margin-bottom: 0; }
+.section { padding-top: 0; }
+
+/* ===================================
+   LIVE MAPPING BADGES (active mode indicator)
+   =================================== */
+
+.live-mapping-section {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+}
+
+.live-mapping-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.live-mapping-title {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.live-mode-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+}
+
+.live-mode-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.live-mode-btn.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.live-mapping-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.live-badge {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+}
+
+.live-badge-input {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.live-badge-arrow {
+    color: var(--primary);
+    font-weight: 700;
+    text-align: center;
+}
+
+.live-badge-action {
+    color: var(--accent-bright);
+}
+
+/* ===================================
+   GESTURE MAP EDITOR
+   =================================== */
+
+.mapping-editor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.mapping-editor-card {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+}
+
+.mapping-editor-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-light);
+    margin-bottom: var(--spacing-md);
+}
+
+.context-icon-sm { font-size: 1.2rem; }
+
+.map-editor-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.map-editor-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+}
+
+.map-editor-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.map-editor-select {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius-sm);
+    color: var(--accent-bright);
+    font-size: 0.82rem;
+    padding: 5px 8px;
+    cursor: pointer;
+    outline: none;
+    width: 100%;
+    transition: border-color var(--transition-fast);
+}
+
+.map-editor-select:hover,
+.map-editor-select:focus {
+    border-color: var(--primary);
+}
+
+.map-editor-select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.reset-map-btn {
+    margin-top: var(--spacing-sm);
+    padding: 6px 16px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.reset-map-btn:hover {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.mapping-reference-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.mapping-reference-header h3 {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+}
+
+/* ===================================
+   RING TESTER (replaces simulate gestures)
+   =================================== */
+
+.simulator-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.simulator-header h3 {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.simulator-note {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+}
+
+/* ===================================
+   RESPONSIVE: editor grid + tester
+   =================================== */
+
+@media (max-width: 900px) {
+    .mapping-editor-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .map-editor-row { grid-template-columns: 1fr; }
+    .live-mapping-header { flex-direction: column; align-items: flex-start; }
+    .gesture-buttons { grid-template-columns: repeat(2,1fr); }
+}

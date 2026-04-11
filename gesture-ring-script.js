@@ -1,21 +1,36 @@
 /* ===================================
-   GESTURE RING - MAIN JAVASCRIPT
-   Three.js 3D Ring + Interaction Logic
+   GESTURE RING — MAIN JAVASCRIPT
    =================================== */
 
 // ============================================
-// GLOBAL STATE MANAGEMENT
+// GLOBAL STATE
 // ============================================
+
+const DEFAULT_GESTURE_MAP = {
+    media: {
+        'rotate-cw':  'VOL_UP',
+        'rotate-ccw': 'VOL_DOWN',
+        'tap-single': 'PLAY_PAUSE',
+        'tap-double': 'NEXT',
+        'tap-triple': 'PREV',
+        'long-press': 'MODE_PRESENTATION'
+    },
+    presentation: {
+        'rotate-cw':  'SLIDE_NEXT',
+        'rotate-ccw': 'SLIDE_PREV',
+        'tap-single': 'SELECT',
+        'tap-double': 'NEXT',
+        'tap-triple': 'PREV',
+        'long-press': 'MODE_DEFAULT'
+    }
+};
 
 const AppState = {
     currentSection: 'landing',
     currentView: 'live',
     currentContext: 'media',
     currentGesture: 'idle',
-    gestureConfidence: 0,
-    currentMode: 'General',
     timeline: [],
-    ring3D: null,
     ringScene: null,
     liveRingScene: null,
     bleDevice: null,
@@ -24,7 +39,8 @@ const AppState = {
     simulationInterval: null,
     gestureResetTimer: null,
     heroResizeHandler: null,
-    liveResizeHandler: null
+    liveResizeHandler: null,
+    gestureMap: JSON.parse(JSON.stringify(DEFAULT_GESTURE_MAP))
 };
 
 const BLE_CONFIG = {
@@ -35,6 +51,77 @@ const BLE_CONFIG = {
 
 const MEDIA_BRIDGE_URL = 'http://localhost:3199/command';
 
+// Firmware sends these fixed tokens. This table maps each token to which
+// gestureMap input key it corresponds to, so we can look up the user's
+// current remapped action instead of using a hardcoded action.
+//
+// THE CORE FIX for "remapping not working":
+// Previously handleCommand() had its own hardcoded cmdToGesture table and
+// hardcoded mediaCmds list — these completely bypassed AppState.gestureMap.
+// Now every inbound BLE token is resolved through the gestureMap, so
+// whatever the user remapped in the UI is actually what gets executed.
+const FIRMWARE_TOKEN_TO_INPUT = {
+    // Media mode tokens
+    VOL_UP:     'rotate-cw',
+    VOL_DOWN:   'rotate-ccw',
+    PLAY_PAUSE: 'tap-single',
+    NEXT:       'tap-double',
+    PREV:       'tap-triple',
+    // Presentation mode tokens (same button actions, different context)
+    SLIDE_NEXT: 'rotate-cw',
+    SLIDE_PREV: 'rotate-ccw',
+    SELECT:     'tap-single'
+};
+
+const COMMAND_LABELS = {
+    VOL_UP:            'Volume Up',
+    VOL_DOWN:          'Volume Down',
+    PLAY_PAUSE:        'Play / Pause',
+    NEXT:              'Next Track',
+    PREV:              'Previous Track',
+    SELECT:            'Select',
+    SLIDE_NEXT:        'Next Slide',
+    SLIDE_PREV:        'Previous Slide',
+    MODE_DEFAULT:      'Switch to Media Mode',
+    MODE_PRESENTATION: 'Switch to Presentation Mode',
+    SCROLL_UP:         'Scroll Up',
+    SCROLL_DOWN:       'Scroll Down'
+};
+
+// Maps a remapped action command to what the media bridge expects.
+// Some web-app actions (SLIDE_NEXT) become scroll keys at the OS level.
+const ACTION_TO_BRIDGE = {
+    VOL_UP:            'VOL_UP',
+    VOL_DOWN:          'VOL_DOWN',
+    PLAY_PAUSE:        'PLAY_PAUSE',
+    NEXT:              'NEXT',
+    PREV:              'PREV',
+    SELECT:            'PLAY_PAUSE',   // closest OS key
+    SLIDE_NEXT:        'SCROLL_UP',
+    SLIDE_PREV:        'SCROLL_DOWN'
+};
+
+// Visual gesture name to show in the ring animation when an action fires
+const ACTION_TO_VISUAL = {
+    VOL_UP:            'rotate-right',
+    VOL_DOWN:          'rotate-left',
+    SLIDE_NEXT:        'rotate-right',
+    SLIDE_PREV:        'rotate-left',
+    PLAY_PAUSE:        'tap',
+    SELECT:            'tap',
+    NEXT:              'swipe-right',
+    PREV:              'swipe-left',
+    MODE_DEFAULT:      'mode',
+    MODE_PRESENTATION: 'mode'
+};
+
+const COMMAND_ICONS = {
+    VOL_UP:'🔊', VOL_DOWN:'🔉', PLAY_PAUSE:'⏯️', NEXT:'⏭️', PREV:'⏮️',
+    SELECT:'✅', SLIDE_NEXT:'📄', SLIDE_PREV:'📄',
+    MODE_DEFAULT:'🎛️', MODE_PRESENTATION:'🎛️',
+    SCROLL_UP:'⬆️', SCROLL_DOWN:'⬇️'
+};
+
 let lastRotationTime = 0;
 
 // ============================================
@@ -42,204 +129,125 @@ let lastRotationTime = 0;
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Gesture Ring System Initializing...');
-    
-    // Initialize landing page components
     initParticleBackground();
     initHero3DRing();
-    
-    // Set up navigation
     setupNavigation();
-
-    // Set up BLE controls
     initBleControls();
-    
-    // Set up context switching
     setupContextSwitching();
-    
-    console.log('✅ System Ready');
+    renderGestureMapEditor();
+    renderLiveMappingBadges();
 });
 
 // ============================================
-// PARTICLE BACKGROUND (Landing Page)
+// PARTICLE BACKGROUND
 // ============================================
 
 function initParticleBackground() {
     const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
-    // Set canvas size
+
     function resizeCanvas() {
-        canvas.width = window.innerWidth;
+        canvas.width  = window.innerWidth;
         canvas.height = window.innerHeight;
     }
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
-    
-    // Particle system
+
     const particles = [];
-    const particleCount = 100;
-    
-    class Particle {
-        constructor() {
-            this.x = Math.random() * canvas.width;
-            this.y = Math.random() * canvas.height;
-            this.vx = (Math.random() - 0.5) * 0.5;
-            this.vy = (Math.random() - 0.5) * 0.5;
-            this.radius = Math.random() * 2 + 1;
-            this.opacity = Math.random() * 0.5 + 0.2;
-        }
-        
-        update() {
-            this.x += this.vx;
-            this.y += this.vy;
-            
-            // Wrap around edges
-            if (this.x < 0) this.x = canvas.width;
-            if (this.x > canvas.width) this.x = 0;
-            if (this.y < 0) this.y = canvas.height;
-            if (this.y > canvas.height) this.y = 0;
-        }
-        
-        draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(99, 102, 241, ${this.opacity})`;
-            ctx.fill();
-        }
+    for (let i = 0; i < 100; i++) particles.push(newParticle(canvas));
+
+    function newParticle(cv) {
+        return {
+            x: Math.random() * cv.width,
+            y: Math.random() * cv.height,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.5,
+            r:  Math.random() * 2 + 1,
+            o:  Math.random() * 0.5 + 0.2
+        };
     }
-    
-    // Create particles
-    for (let i = 0; i < particleCount; i++) {
-        particles.push(new Particle());
-    }
-    
-    // Animation loop
-    function animate() {
+
+    (function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        particles.forEach(particle => {
-            particle.update();
-            particle.draw();
+        particles.forEach(p => {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(99,102,241,${p.o})`;
+            ctx.fill();
         });
-        
-        // Draw connections
         for (let i = 0; i < particles.length; i++) {
             for (let j = i + 1; j < particles.length; j++) {
                 const dx = particles[i].x - particles[j].x;
                 const dy = particles[i].y - particles[j].y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 150) {
+                const d  = Math.sqrt(dx*dx + dy*dy);
+                if (d < 150) {
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(99, 102, 241, ${0.15 * (1 - distance / 150)})`;
+                    ctx.strokeStyle = `rgba(99,102,241,${0.15*(1-d/150)})`;
                     ctx.lineWidth = 0.5;
                     ctx.stroke();
                 }
             }
         }
-        
         requestAnimationFrame(animate);
-    }
-    
-    animate();
+    })();
 }
 
 // ============================================
-// 3D RING VISUALIZATION (Three.js)
+// 3D RING — HERO
 // ============================================
 
 function initHero3DRing() {
     const container = document.getElementById('ring-container-3d');
     if (!container) return;
-    
-    // Scene setup
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+
+    const scene    = new THREE.Scene();
+    const camera   = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    
     renderer.setSize(container.offsetWidth, container.offsetHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
-    
     camera.position.z = 8;
-    
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-    
-    const pointLight1 = new THREE.PointLight(0x6366f1, 2, 100);
-    pointLight1.position.set(5, 5, 5);
-    scene.add(pointLight1);
-    
-    const pointLight2 = new THREE.PointLight(0xa78bfa, 1.5, 100);
-    pointLight2.position.set(-5, -5, 5);
-    scene.add(pointLight2);
-    
-    // Create Ring
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const pl1 = new THREE.PointLight(0x6366f1, 2, 100); pl1.position.set(5,5,5); scene.add(pl1);
+    const pl2 = new THREE.PointLight(0xa78bfa, 1.5, 100); pl2.position.set(-5,-5,5); scene.add(pl2);
+
     const ringGroup = new THREE.Group();
-    
-    // Outer ring (main body)
-    const outerRingGeometry = new THREE.TorusGeometry(2, 0.3, 32, 100);
-    const outerRingMaterial = new THREE.MeshStandardMaterial({
-        color: 0x6366f1,
-        metalness: 0.8,
-        roughness: 0.2,
-        emissive: 0x4f46e5,
-        emissiveIntensity: 0.3
-    });
-    const outerRing = new THREE.Mesh(outerRingGeometry, outerRingMaterial);
-    ringGroup.add(outerRing);
-    
-    // Inner glow ring
-    const glowRingGeometry = new THREE.TorusGeometry(2, 0.35, 32, 100);
-    const glowRingMaterial = new THREE.MeshBasicMaterial({
-        color: 0xa78bfa,
-        transparent: true,
-        opacity: 0.3
-    });
-    const glowRing = new THREE.Mesh(glowRingGeometry, glowRingMaterial);
-    ringGroup.add(glowRing);
-    
-    // Gesture sensing zone (sphere)
-    const sensingZoneGeometry = new THREE.SphereGeometry(3.5, 32, 32);
-    const sensingZoneMaterial = new THREE.MeshBasicMaterial({
-        color: 0x6366f1,
-        transparent: true,
-        opacity: 0.05,
-        wireframe: true
-    });
-    const sensingZone = new THREE.Mesh(sensingZoneGeometry, sensingZoneMaterial);
-    ringGroup.add(sensingZone);
-    
+    const outerRing = new THREE.Mesh(
+        new THREE.TorusGeometry(2, 0.3, 32, 100),
+        new THREE.MeshStandardMaterial({ color:0x6366f1, metalness:0.8, roughness:0.2, emissive:0x4f46e5, emissiveIntensity:0.3 })
+    );
+    const glowRing = new THREE.Mesh(
+        new THREE.TorusGeometry(2, 0.35, 32, 100),
+        new THREE.MeshBasicMaterial({ color:0xa78bfa, transparent:true, opacity:0.3 })
+    );
+    const sensingZone = new THREE.Mesh(
+        new THREE.SphereGeometry(3.5, 32, 32),
+        new THREE.MeshBasicMaterial({ color:0x6366f1, transparent:true, opacity:0.05, wireframe:true })
+    );
+    ringGroup.add(outerRing, glowRing, sensingZone);
     scene.add(ringGroup);
-    
-    // Store references
     AppState.ringScene = { scene, camera, renderer, ringGroup, glowRing };
-    
-    // Animation loop
+
     let time = 0;
-    function animate() {
+    (function animate() {
         requestAnimationFrame(animate);
         time += 0.01;
-        
-        // Rotate ring
         ringGroup.rotation.x = Math.sin(time * 0.5) * 0.3;
         ringGroup.rotation.y += 0.01;
-        
-        // Pulse glow
         glowRing.material.opacity = 0.2 + Math.sin(time * 2) * 0.1;
-        
-        // Pulse sensing zone
         sensingZone.scale.setScalar(1 + Math.sin(time * 1.5) * 0.05);
-        
         renderer.render(scene, camera);
-    }
-    animate();
-    
-    // Handle window resize
+    })();
+
     if (!AppState.heroResizeHandler) {
         AppState.heroResizeHandler = () => {
             if (container.offsetWidth > 0) {
@@ -250,90 +258,51 @@ function initHero3DRing() {
         };
         window.addEventListener('resize', AppState.heroResizeHandler);
     }
-    
-    // Simulate gesture detection
     simulateGestureDetection();
 }
 
 // ============================================
-// LIVE RING VISUALIZATION (Main Interface)
+// 3D RING — LIVE VIEW
 // ============================================
 
 function initLiveRing() {
     const container = document.getElementById('live-ring-container');
     if (!container || AppState.liveRingScene) return;
-    
-    // Scene setup
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+
+    const scene    = new THREE.Scene();
+    const camera   = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    
     renderer.setSize(container.offsetWidth, container.offsetHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
-    
     camera.position.z = 6;
-    
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-    
-    const pointLight = new THREE.PointLight(0x6366f1, 2, 100);
-    pointLight.position.set(3, 3, 3);
-    scene.add(pointLight);
-    
-    // Create Ring
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const pl = new THREE.PointLight(0x6366f1, 2, 100); pl.position.set(3,3,3); scene.add(pl);
+
     const ringGroup = new THREE.Group();
-    
-    const ringGeometry = new THREE.TorusGeometry(1.5, 0.25, 32, 100);
-    const ringMaterial = new THREE.MeshStandardMaterial({
-        color: 0x6366f1,
-        metalness: 0.9,
-        roughness: 0.1,
-        emissive: 0x4f46e5,
-        emissiveIntensity: 0.5
-    });
-    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.5, 0.25, 32, 100),
+        new THREE.MeshStandardMaterial({ color:0x6366f1, metalness:0.9, roughness:0.1, emissive:0x4f46e5, emissiveIntensity:0.5 })
+    );
     ringGroup.add(ring);
-    
-    // Gesture feedback particles
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particleCount = 50;
-    const positions = new Float32Array(particleCount * 3);
-    
-    for (let i = 0; i < particleCount * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 5;
-    }
-    
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    
-    const particlesMaterial = new THREE.PointsMaterial({
-        color: 0xa78bfa,
-        size: 0.05,
-        transparent: true,
-        opacity: 0.6
-    });
-    
-    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
-    scene.add(particles);
-    
-    scene.add(ringGroup);
-    
-    // Store references
+
+    const posArr = new Float32Array(150);
+    for (let i = 0; i < 150; i++) posArr[i] = (Math.random() - 0.5) * 5;
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+    const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color:0xa78bfa, size:0.05, transparent:true, opacity:0.6 }));
+    scene.add(particles, ringGroup);
+
     AppState.liveRingScene = { scene, camera, renderer, ringGroup, ring, particles };
-    
-    // Animation loop
-    function animate() {
+
+    (function animate() {
         requestAnimationFrame(animate);
-        
         ringGroup.rotation.y += 0.005;
         particles.rotation.y -= 0.002;
-        
         renderer.render(scene, camera);
-    }
-    animate();
-    
-    // Handle resize
+    })();
+
     if (!AppState.liveResizeHandler) {
         AppState.liveResizeHandler = () => {
             if (container.offsetWidth > 0) {
@@ -346,178 +315,125 @@ function initLiveRing() {
     }
 }
 
+function disposeLiveRing() {
+    if (!AppState.liveRingScene) return;
+    AppState.liveRingScene.renderer.dispose();
+    const c = document.getElementById('live-ring-container');
+    if (c) c.innerHTML = '';
+    AppState.liveRingScene = null;
+}
+
 // ============================================
-// GESTURE SIMULATION & DETECTION
+// HERO ANIMATION SIMULATION
 // ============================================
 
 function simulateGestureDetection() {
-    const gestures = ['swipe-left', 'swipe-right', 'tap', 'rotate', 'idle'];
-    let currentIndex = 0;
-    
-    if (AppState.simulationInterval) {
-        clearInterval(AppState.simulationInterval);
-    }
-
+    const gestures = ['swipe-left','swipe-right','tap','rotate','idle'];
+    let idx = 0;
+    if (AppState.simulationInterval) clearInterval(AppState.simulationInterval);
     AppState.simulationInterval = setInterval(() => {
-        if (AppState.currentSection === 'landing') {
-            currentIndex = (currentIndex + 1) % gestures.length;
-            const gesture = gestures[currentIndex];
-            
-            if (gesture !== 'idle') {
-                triggerGestureEffect(gesture);
-            }
-        }
+        if (AppState.currentSection !== 'landing') return;
+        idx = (idx + 1) % gestures.length;
+        const g = gestures[idx];
+        if (g !== 'idle') triggerHeroGestureEffect(g);
     }, 4000);
 }
 
-function triggerGestureEffect(gesture) {
+function triggerHeroGestureEffect(gesture) {
     if (!AppState.ringScene) return;
-    
     const { ringGroup, glowRing } = AppState.ringScene;
-    
-    // Visual feedback based on gesture
-    switch(gesture) {
-        case 'swipe-left':
-            animateSwipe(ringGroup, -1);
-            break;
-        case 'swipe-right':
-            animateSwipe(ringGroup, 1);
-            break;
-        case 'tap':
-            animateTap(glowRing);
-            break;
-        case 'rotate':
-            animateRotate(ringGroup);
-            break;
+    switch (gesture) {
+        case 'swipe-left':  animateSwipe(ringGroup, -1); break;
+        case 'swipe-right': animateSwipe(ringGroup, 1);  break;
+        case 'tap':         animateTap(glowRing);         break;
+        case 'rotate':      animateRotate(ringGroup);     break;
     }
 }
 
-function animateSwipe(ringGroup, direction) {
+// ============================================
+// ANIMATION HELPERS
+// ============================================
+
+function animateSwipe(ringGroup, dir) {
     ringGroup.rotation.z = 0;
-    const startRotation = 0;
-    const targetRotation = direction * Math.PI / 4;
-    const duration = 500;
-    const startTime = Date.now();
-    
-    function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeOutCubic(progress);
-        
-        ringGroup.rotation.z = startRotation + (targetRotation - startRotation) * eased;
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        } else {
-            // Reset
-            setTimeout(() => {
-                const resetStart = Date.now();
-                function reset() {
-                    const elapsed = Date.now() - resetStart;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const eased = easeOutCubic(progress);
-                    
-                    ringGroup.rotation.z = targetRotation - (targetRotation - startRotation) * eased;
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(reset);
-                    } else {
-                        ringGroup.rotation.z = 0;
-                    }
-                }
-                reset();
-            }, 200);
-        }
-    }
-    animate();
+    const target = dir * Math.PI / 4;
+    const t0 = Date.now();
+    (function go() {
+        const p = Math.min((Date.now()-t0)/500,1);
+        ringGroup.rotation.z = target * easeOutCubic(p);
+        if (p < 1) { requestAnimationFrame(go); return; }
+        setTimeout(() => {
+            const t1 = Date.now();
+            (function back() {
+                const p2 = Math.min((Date.now()-t1)/500,1);
+                ringGroup.rotation.z = target*(1-easeOutCubic(p2));
+                if (p2 < 1) requestAnimationFrame(back); else ringGroup.rotation.z = 0;
+            })();
+        }, 200);
+    })();
 }
 
 function animateTap(glowRing) {
-    const startOpacity = glowRing.material.opacity;
-    const duration = 300;
-    const startTime = Date.now();
-    
-    function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        if (progress < 0.5) {
-            glowRing.material.opacity = startOpacity + (0.8 - startOpacity) * (progress * 2);
-        } else {
-            glowRing.material.opacity = 0.8 - (0.8 - startOpacity) * ((progress - 0.5) * 2);
-        }
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        }
-    }
-    animate();
+    const base = glowRing.material.opacity;
+    const t0 = Date.now();
+    (function go() {
+        const p = Math.min((Date.now()-t0)/300,1);
+        glowRing.material.opacity = p < 0.5 ? base+(0.8-base)*(p*2) : 0.8-(0.8-base)*((p-0.5)*2);
+        if (p < 1) requestAnimationFrame(go);
+    })();
 }
 
 function animateRotate(ringGroup) {
-    const startRotation = ringGroup.rotation.y;
-    const targetRotation = startRotation + Math.PI;
-    const duration = 1000;
-    const startTime = Date.now();
-    
-    function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeInOutCubic(progress);
-        
-        ringGroup.rotation.y = startRotation + (targetRotation - startRotation) * eased;
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        }
-    }
-    animate();
+    const s = ringGroup.rotation.y, t = s + Math.PI;
+    const t0 = Date.now();
+    (function go() {
+        const p = Math.min((Date.now()-t0)/1000,1);
+        ringGroup.rotation.y = s+(t-s)*easeInOutCubic(p);
+        if (p < 1) requestAnimationFrame(go);
+    })();
 }
 
-// Easing functions
-function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
+function animateJump(ringGroup) {
+    const sy = ringGroup.position.y;
+    const t0 = Date.now();
+    (function go() {
+        const p = Math.min((Date.now()-t0)/400,1);
+        ringGroup.position.y = sy + Math.sin(p*Math.PI)*0.5;
+        if (p < 1) requestAnimationFrame(go); else ringGroup.position.y = sy;
+    })();
 }
 
-function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function animateSpin(ringGroup) {
+    const s = ringGroup.rotation.y, t = s + Math.PI*2;
+    const t0 = Date.now();
+    (function go() {
+        const p = Math.min((Date.now()-t0)/800,1);
+        ringGroup.rotation.y = s+(t-s)*easeInOutCubic(p);
+        if (p < 1) requestAnimationFrame(go);
+    })();
 }
+
+function easeOutCubic(t)   { return 1-Math.pow(1-t,3); }
+function easeInOutCubic(t) { return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2; }
 
 // ============================================
-// NAVIGATION & SECTION SWITCHING
+// NAVIGATION
 // ============================================
 
 function enterExperience() {
-    console.log('🎯 Entering main interface...');
-    
-    // Hide landing page
-    const landingPage = document.getElementById('landing-page');
-    const mainInterface = document.getElementById('main-interface');
-    
-    landingPage.classList.remove('active');
+    document.getElementById('landing-page').classList.remove('active');
     setTimeout(() => {
-        mainInterface.classList.add('active');
+        document.getElementById('main-interface').classList.add('active');
         AppState.currentSection = 'main';
-
-        if (AppState.simulationInterval) {
-            clearInterval(AppState.simulationInterval);
-            AppState.simulationInterval = null;
-        }
-        
-        // Initialize live ring if not already done
+        if (AppState.simulationInterval) { clearInterval(AppState.simulationInterval); AppState.simulationInterval = null; }
         initLiveRing();
     }, 300);
 }
 
 function backToLanding() {
-    console.log('🏠 Returning to landing page...');
-    
-    const landingPage = document.getElementById('landing-page');
-    const mainInterface = document.getElementById('main-interface');
-    
-    mainInterface.classList.remove('active');
+    document.getElementById('main-interface').classList.remove('active');
     setTimeout(() => {
-        landingPage.classList.add('active');
+        document.getElementById('landing-page').classList.add('active');
         AppState.currentSection = 'landing';
         simulateGestureDetection();
         disposeLiveRing();
@@ -525,314 +441,23 @@ function backToLanding() {
 }
 
 function setupNavigation() {
-    const navTabs = document.querySelectorAll('.nav-tab');
-    
-    navTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const viewName = tab.getAttribute('data-view');
-            switchView(viewName);
-            
-            // Update active tab
-            navTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-        });
-    });
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+        const v = tab.getAttribute('data-view');
+        switchView(v);
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+    }));
 }
 
 function switchView(viewName) {
-    console.log(`📱 Switching to ${viewName} view`);
-    
-    // Hide all views
-    const views = document.querySelectorAll('.view');
-    views.forEach(view => view.classList.remove('active'));
-    
-    // Show selected view
-    const targetView = document.getElementById(`${viewName}-view`);
-    if (targetView) {
-        targetView.classList.add('active');
-        AppState.currentView = viewName;
-        
-        // Initialize live ring when switching to live view
-        if (viewName === 'live') {
-            setTimeout(() => initLiveRing(), 100);
-        } else {
-            disposeLiveRing();
-        }
-    }
-}
-
-// ============================================
-// GESTURE SIMULATION (User Interaction)
-// ============================================
-
-function simulateGesture(gestureType) {
-    if (AppState.isBleConnected) {
-        return;
-    }
-
-    processGestureInput(gestureType, 'simulator');
-}
-
-function processGestureInput(gestureType, source = 'ring') {
-    console.log(`👆 Processing gesture: ${gestureType} from ${source}`);
-    
-    // Update gesture status
-    AppState.currentGesture = gestureType;
-    updateGestureDisplay(gestureType);
-    
-    // Animate confidence
-    animateConfidence();
-    
-    // Trigger visual feedback in 3D ring
-    if (AppState.liveRingScene) {
-        triggerLiveRingGesture(gestureType);
-    }
-    
-    // Update response card
-    updateResponseCard(gestureType);
-    flashGestureUI();
-    
-    // Add to timeline
-    addToTimeline(gestureType, source);
-    
-    // Reset after delay
-    if (AppState.gestureResetTimer) {
-        clearTimeout(AppState.gestureResetTimer);
-    }
-
-    AppState.gestureResetTimer = setTimeout(() => {
-        AppState.currentGesture = 'idle';
-        document.getElementById('current-gesture').textContent = 'Idle';
-        document.getElementById('confidence-fill').style.width = '0%';
-        document.getElementById('confidence-value').textContent = '0%';
-    }, 3000);
-}
-
-function flashGestureUI() {
-    const card = document.querySelector('.response-card');
-    if (!card) {
-        return;
-    }
-
-    card.style.transform = 'scale(1.05)';
-    card.style.boxShadow = '0 0 25px rgba(99,102,241,0.6)';
-
-    setTimeout(() => {
-        card.style.transform = 'scale(1)';
-        card.style.boxShadow = '';
-    }, 150);
-}
-
-function updateGestureDisplay(gesture) {
-    const gestureDisplay = document.getElementById('current-gesture');
-    const gestureNames = {
-        'swipe-left': 'Swipe Left 👈',
-        'swipe-right': 'Swipe Right 👉',
-        'tap': 'Tap 👆',
-        'rotate': 'Rotate 🔄',
-        'rotate-left': 'Rotate Left ↺',
-        'rotate-right': 'Rotate Right ↻',
-        'mode': 'Mode Switch 🔁'
-    };
-    
-    gestureDisplay.textContent = gestureNames[gesture] || gesture;
-}
-
-function animateConfidence() {
-    const confidenceFill = document.getElementById('confidence-fill');
-    const confidenceValue = document.getElementById('confidence-value');
-    
-    let confidence = 0;
-    const targetConfidence = 85 + Math.random() * 15; // 85-100%
-    const duration = 500;
-    const startTime = Date.now();
-    
-    function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeOutCubic(progress);
-        
-        confidence = targetConfidence * eased;
-        confidenceFill.style.width = `${confidence}%`;
-        confidenceValue.textContent = `${Math.round(confidence)}%`;
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        }
-    }
-    animate();
-}
-
-function triggerLiveRingGesture(gesture) {
-    const { ringGroup, ring } = AppState.liveRingScene;
-    
-    // Change ring color temporarily
-    const originalColor = ring.material.color.getHex();
-    ring.material.color.setHex(0xa78bfa);
-    ring.material.emissiveIntensity = 1;
-    
-    setTimeout(() => {
-        ring.material.color.setHex(originalColor);
-        ring.material.emissiveIntensity = 0.5;
-    }, 500);
-    
-    // Gesture-specific animations
-    switch(gesture) {
-        case 'swipe-left':
-            animateSwipe(ringGroup, -1);
-            break;
-        case 'swipe-right':
-            animateSwipe(ringGroup, 1);
-            break;
-        case 'tap':
-            animateJump(ringGroup);
-            break;
-        case 'rotate':
-            animateSpin(ringGroup);
-            break;
-        case 'rotate-left':
-            animateSwipe(ringGroup, -1);
-            break;
-        case 'rotate-right':
-            animateSwipe(ringGroup, 1);
-            break;
-        case 'mode':
-            animateSpin(ringGroup);
-            break;
-    }
-}
-
-function animateJump(ringGroup) {
-    const startY = ringGroup.position.y;
-    const duration = 400;
-    const startTime = Date.now();
-    
-    function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        ringGroup.position.y = startY + Math.sin(progress * Math.PI) * 0.5;
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        } else {
-            ringGroup.position.y = startY;
-        }
-    }
-    animate();
-}
-
-function animateSpin(ringGroup) {
-    const startRotation = ringGroup.rotation.y;
-    const targetRotation = startRotation + Math.PI * 2;
-    const duration = 800;
-    const startTime = Date.now();
-    
-    function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeInOutCubic(progress);
-        
-        ringGroup.rotation.y = startRotation + (targetRotation - startRotation) * eased;
-        
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        }
-    }
-    animate();
-}
-
-function updateResponseCard(gesture) {
-    const responseCard = document.getElementById('response-display');
-    const responseIcon = responseCard.querySelector('.response-icon');
-    const responseText = responseCard.querySelector('.response-text');
-    const currentAction = document.getElementById('current-action');
-    const currentMode = document.getElementById('current-mode');
-    
-    // Gesture mappings based on context
-    const actions = {
-        'media': {
-            'swipe-left': { icon: '⏮️', text: 'Previous Track', action: 'Media Control' },
-            'swipe-right': { icon: '⏭️', text: 'Next Track', action: 'Media Control' },
-            'tap': { icon: '⏯️', text: 'Play/Pause', action: 'Toggle Playback' },
-            'rotate': { icon: '🔊', text: 'Volume Changed', action: 'Volume Control' },
-            'rotate-left': { icon: '🔉', text: 'Volume Down', action: 'Lower Volume' },
-            'rotate-right': { icon: '🔊', text: 'Volume Up', action: 'Raise Volume' },
-            'mode': { icon: '🎛️', text: 'Mode Changed', action: 'Switched Interaction Context' }
-        },
-        'presentation': {
-            'swipe-left': { icon: '📄', text: 'Previous (Scroll Down)', action: 'Scroll Down' },
-            'swipe-right': { icon: '📄', text: 'Next (Scroll Up)', action: 'Scroll Up' },
-            'tap': { icon: '✅', text: 'Select', action: 'Confirm Selection' },
-            'rotate': { icon: '📄', text: 'Scroll', action: 'Scroll Control' },
-            'rotate-left': { icon: '📄', text: 'Scroll Down', action: 'Scroll Down' },
-            'rotate-right': { icon: '📄', text: 'Scroll Up', action: 'Scroll Up' },
-            'mode': { icon: '🎛️', text: 'Mode Changed', action: 'Switched Interaction Context' }
-        },
-        'general': {
-            'swipe-left': { icon: '👈', text: 'Swipe Left Detected', action: 'Generic Back' },
-            'swipe-right': { icon: '👉', text: 'Swipe Right Detected', action: 'Generic Forward' },
-            'tap': { icon: '👆', text: 'Tap Detected', action: 'Generic Select' },
-            'rotate': { icon: '🔄', text: 'Rotation Detected', action: 'Generic Adjust' },
-            'rotate-left': { icon: '↺', text: 'Rotate Left Detected', action: 'Generic Decrease' },
-            'rotate-right': { icon: '↻', text: 'Rotate Right Detected', action: 'Generic Increase' },
-            'mode': { icon: '🎛️', text: 'Mode Changed', action: 'Switched Interaction Context' }
-        }
-    };
-    
-    const context = AppState.currentContext || 'general';
-    const mapping = actions[context]?.[gesture] || actions['general'][gesture];
-    
-    if (mapping) {
-        responseIcon.textContent = mapping.icon;
-        responseText.textContent = mapping.text;
-        currentAction.textContent = mapping.action;
-        currentMode.textContent = context.charAt(0).toUpperCase() + context.slice(1);
-        
-        // Add active state
-        responseCard.classList.add('active');
-        setTimeout(() => {
-            responseCard.classList.remove('active');
-        }, 2500);
-    }
-}
-
-function addToTimeline(gesture, source = 'ring') {
-    const timeline = document.getElementById('timeline-items');
-    const timestamp = new Date().toLocaleTimeString();
-    
-    const gestureNames = {
-        'swipe-left': 'Swipe Left',
-        'swipe-right': 'Swipe Right',
-        'tap': 'Tap',
-        'rotate': 'Rotate',
-        'rotate-left': 'Rotate Left',
-        'rotate-right': 'Rotate Right',
-        'mode': 'Mode Switch'
-    };
-    
-    const timelineItem = document.createElement('div');
-    timelineItem.className = 'timeline-item';
-    timelineItem.innerHTML = `
-        <span class="timeline-time">${timestamp}</span>
-        <span class="timeline-content">${gestureNames[gesture]} → Action executed successfully (${source})</span>
-    `;
-    
-    // Add to top
-    timeline.insertBefore(timelineItem, timeline.firstChild);
-    
-    // Keep only last 10 items
-    while (timeline.children.length > 10) {
-        timeline.removeChild(timeline.lastChild);
-    }
-    
-    // Add to state
-    AppState.timeline.unshift({
-        timestamp,
-        gesture,
-        action: gestureNames[gesture],
-        source
-    });
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const t = document.getElementById(`${viewName}-view`);
+    if (!t) return;
+    t.classList.add('active');
+    AppState.currentView = viewName;
+    if (viewName === 'live') setTimeout(() => initLiveRing(), 100);
+    else disposeLiveRing();
 }
 
 // ============================================
@@ -840,235 +465,394 @@ function addToTimeline(gesture, source = 'ring') {
 // ============================================
 
 function setupContextSwitching() {
-    const contextButtons = document.querySelectorAll('.context-btn');
-    
-    contextButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const context = button.getAttribute('data-context');
-            switchContext(context);
+    document.querySelectorAll('.context-btn').forEach(btn =>
+        btn.addEventListener('click', () => switchContext(btn.getAttribute('data-context')))
+    );
+    document.querySelectorAll('.live-mode-btn').forEach(btn =>
+        btn.addEventListener('click', () => switchContext(btn.getAttribute('data-context')))
+    );
+    switchContext(AppState.currentContext);
+}
+
+function switchContext(contextName) {
+    AppState.currentContext = contextName;
+
+    // Sync all mode toggle buttons
+    document.querySelectorAll('.context-btn,.live-mode-btn').forEach(b =>
+        b.classList.toggle('active', b.getAttribute('data-context') === contextName)
+    );
+
+    // Sync context panels
+    document.querySelectorAll('.context-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.querySelector(`.context-panel[data-panel="${contextName}"]`);
+    if (panel) panel.classList.add('active');
+
+    renderLiveMappingBadges();
+
+    // Tell the firmware which mode it should be in so button presses fire
+    // the correct token (VOL_UP vs SLIDE_NEXT etc.)
+    if (AppState.isBleConnected && AppState.bleCharacteristic) {
+        const cmd = contextName === 'media' ? 'MODE_DEFAULT' : 'MODE_PRESENTATION';
+        sendBLE(cmd);
+    }
+}
+
+function cycleContextMode() {
+    const order = ['media','presentation'];
+    switchContext(order[(order.indexOf(AppState.currentContext)+1)%order.length]);
+}
+
+// ============================================
+// GESTURE MAP EDITOR
+// ============================================
+
+const ASSIGNABLE_ACTIONS = {
+    media:        ['VOL_UP','VOL_DOWN','PLAY_PAUSE','NEXT','PREV','MODE_PRESENTATION'],
+    presentation: ['SLIDE_NEXT','SLIDE_PREV','SELECT','NEXT','PREV','MODE_DEFAULT']
+};
+
+const GESTURE_INPUT_LABELS = {
+    'rotate-cw':  'Rotate Clockwise',
+    'rotate-ccw': 'Rotate Counter-clockwise',
+    'tap-single': 'Single Tap',
+    'tap-double': 'Double Tap',
+    'tap-triple': 'Triple Tap',
+    'long-press': 'Long Press'
+};
+
+function renderGestureMapEditor() {
+    ['media','presentation'].forEach(ctx => {
+        const container = document.getElementById(`map-editor-${ctx}`);
+        if (!container) return;
+        container.innerHTML = '';
+        const map     = AppState.gestureMap[ctx];
+        const actions = ASSIGNABLE_ACTIONS[ctx];
+
+        Object.entries(GESTURE_INPUT_LABELS).forEach(([inputKey, inputLabel]) => {
+            const row = document.createElement('div');
+            row.className = 'map-editor-row';
+
+            const lbl = document.createElement('span');
+            lbl.className   = 'map-editor-label';
+            lbl.textContent = inputLabel;
+
+            const sel = document.createElement('select');
+            sel.className = 'map-editor-select';
+
+            actions.forEach(action => {
+                const opt = document.createElement('option');
+                opt.value       = action;
+                opt.textContent = COMMAND_LABELS[action] || action;
+                if (map[inputKey] === action) opt.selected = true;
+                sel.appendChild(opt);
+            });
+
+            sel.addEventListener('change', () => {
+                // Update the in-memory map immediately — all subsequent BLE
+                // commands from the ring will now use this updated map.
+                AppState.gestureMap[ctx][inputKey] = sel.value;
+                renderLiveMappingBadges();
+                // No need to send to firmware — firmware sends fixed tokens,
+                // the web app resolves them through gestureMap at receive time.
+            });
+
+            row.appendChild(lbl);
+            row.appendChild(sel);
+            container.appendChild(row);
         });
     });
 }
 
-function switchContext(contextName) {
-    console.log(`🎭 Switching to ${contextName} context`);
-    
-    AppState.currentContext = contextName;
-    
-    // Hide all context panels
-    const panels = document.querySelectorAll('.context-panel');
-    panels.forEach(panel => panel.classList.remove('active'));
-    
-    // Show selected panel
-    const targetPanel = document.querySelector(`.context-panel[data-panel="${contextName}"]`);
-    if (targetPanel) {
-        targetPanel.classList.add('active');
-    }
+function resetGestureMap() {
+    AppState.gestureMap = JSON.parse(JSON.stringify(DEFAULT_GESTURE_MAP));
+    renderGestureMapEditor();
+    renderLiveMappingBadges();
+}
 
-    const contextButtons = document.querySelectorAll('.context-btn');
-    contextButtons.forEach(btn => {
-        const isActive = btn.getAttribute('data-context') === contextName;
-        btn.classList.toggle('active', isActive);
+function renderLiveMappingBadges() {
+    const ctx       = AppState.currentContext;
+    const map       = AppState.gestureMap[ctx];
+    const container = document.getElementById('live-mapping-badges');
+    if (!container) return;
+    container.innerHTML = '';
+    Object.entries(map).forEach(([input, action]) => {
+        const badge = document.createElement('div');
+        badge.className = 'live-badge';
+        badge.innerHTML = `
+            <span class="live-badge-input">${GESTURE_INPUT_LABELS[input]}</span>
+            <span class="live-badge-arrow">→</span>
+            <span class="live-badge-action">${COMMAND_LABELS[action] || action}</span>`;
+        container.appendChild(badge);
     });
 }
 
-function getNextContext(currentContext) {
-    const order = ['media', 'presentation'];
-    const currentIndex = order.indexOf(currentContext);
-    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % order.length;
-    return order[nextIndex];
+// ============================================
+// RING TESTER
+// ============================================
+
+// Fires a gesture through the full pipeline using the CURRENT gestureMap,
+// so the tester always reflects whatever mapping is active.
+function testGesture(inputKey) {
+    const ctx    = AppState.currentContext;
+    const action = AppState.gestureMap[ctx][inputKey];
+    if (!action) return;
+
+    const visual = ACTION_TO_VISUAL[action] || 'tap';
+    processGestureInput(visual, action, 'tester');
+
+    // Send to OS bridge as well so tester is useful even without hardware
+    const bridgeCmd = ACTION_TO_BRIDGE[action];
+    if (bridgeCmd) sendSystemMediaCommand(bridgeCmd);
 }
 
-function cycleContextMode() {
-    const nextContext = getNextContext(AppState.currentContext);
-    switchContext(nextContext);
+// ============================================
+// GESTURE PROCESSING — CORE PIPELINE
+// ============================================
+
+// processGestureInput now takes an explicit `action` string so the response
+// card, icon, and timeline always show the *remapped* action, not a guess.
+function processGestureInput(visualGesture, action, source) {
+    AppState.currentGesture = visualGesture;
+    updateGestureDisplay(visualGesture);
+    animateConfidence();
+
+    if (AppState.liveRingScene) triggerLiveRingGesture(visualGesture);
+
+    updateResponseCard(action);
+    flashGestureUI();
+    addToTimeline(visualGesture, action, source || 'ring');
+
+    clearTimeout(AppState.gestureResetTimer);
+    AppState.gestureResetTimer = setTimeout(() => {
+        AppState.currentGesture = 'idle';
+        const cg = document.getElementById('current-gesture');
+        const cf = document.getElementById('confidence-fill');
+        const cv = document.getElementById('confidence-value');
+        if (cg) cg.textContent = 'Idle';
+        if (cf) cf.style.width = '0%';
+        if (cv) cv.textContent = '0%';
+    }, 3000);
 }
+
+function flashGestureUI() {
+    const card = document.querySelector('.response-card');
+    if (!card) return;
+    card.style.transform = 'scale(1.05)';
+    card.style.boxShadow = '0 0 25px rgba(99,102,241,0.6)';
+    setTimeout(() => { card.style.transform='scale(1)'; card.style.boxShadow=''; }, 150);
+}
+
+function updateGestureDisplay(gesture) {
+    const el = document.getElementById('current-gesture');
+    if (!el) return;
+    const names = {
+        'swipe-left':'Swipe Left','swipe-right':'Swipe Right','tap':'Tap',
+        'rotate':'Rotate','rotate-left':'Rotate Left','rotate-right':'Rotate Right',
+        'mode':'Mode Switch'
+    };
+    el.textContent = names[gesture] || gesture;
+}
+
+function animateConfidence() {
+    const fill = document.getElementById('confidence-fill');
+    const val  = document.getElementById('confidence-value');
+    if (!fill || !val) return;
+    const target = 85 + Math.random()*15;
+    const t0     = Date.now();
+    (function go() {
+        const p = Math.min((Date.now()-t0)/500,1);
+        const c = target*easeOutCubic(p);
+        fill.style.width  = `${c}%`;
+        val.textContent   = `${Math.round(c)}%`;
+        if (p < 1) requestAnimationFrame(go);
+    })();
+}
+
+function triggerLiveRingGesture(gesture) {
+    if (!AppState.liveRingScene) return;
+    const { ringGroup, ring } = AppState.liveRingScene;
+    const orig = ring.material.color.getHex();
+    ring.material.color.setHex(0xa78bfa);
+    ring.material.emissiveIntensity = 1;
+    setTimeout(() => { ring.material.color.setHex(orig); ring.material.emissiveIntensity = 0.5; }, 500);
+    switch (gesture) {
+        case 'swipe-left':
+        case 'rotate-left':  animateSwipe(ringGroup,-1); break;
+        case 'swipe-right':
+        case 'rotate-right': animateSwipe(ringGroup,1);  break;
+        case 'tap':          animateJump(ringGroup);      break;
+        case 'rotate':
+        case 'mode':         animateSpin(ringGroup);      break;
+    }
+}
+
+// updateResponseCard now receives the resolved action directly
+function updateResponseCard(action) {
+    const card     = document.getElementById('response-display');
+    const iconEl   = card ? card.querySelector('.response-icon') : null;
+    const textEl   = card ? card.querySelector('.response-text') : null;
+    const actionEl = document.getElementById('current-action');
+    const modeEl   = document.getElementById('current-mode');
+    const ctx      = AppState.currentContext;
+
+    const label = COMMAND_LABELS[action] || action;
+    const icon  = COMMAND_ICONS[action] || '🤚';
+
+    if (iconEl)   iconEl.textContent   = icon;
+    if (textEl)   textEl.textContent   = label;
+    if (actionEl) actionEl.textContent = label;
+    if (modeEl)   modeEl.textContent   = ctx.charAt(0).toUpperCase() + ctx.slice(1);
+
+    if (card) {
+        card.classList.add('active');
+        setTimeout(() => card.classList.remove('active'), 2500);
+    }
+}
+
+function addToTimeline(gesture, action, source) {
+    const timeline = document.getElementById('timeline-items');
+    if (!timeline) return;
+    const ts    = new Date().toLocaleTimeString();
+    const gName = { 'swipe-left':'Swipe Left','swipe-right':'Swipe Right','tap':'Tap',
+                    'rotate':'Rotate','rotate-left':'Rotate Left','rotate-right':'Rotate Right','mode':'Mode Switch' };
+    const item  = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `<span class="timeline-time">${ts}</span><span class="timeline-content">${gName[gesture]||gesture} → ${COMMAND_LABELS[action]||action} (${source})</span>`;
+    timeline.insertBefore(item, timeline.firstChild);
+    while (timeline.children.length > 10) timeline.removeChild(timeline.lastChild);
+}
+
+// ============================================
+// BLE
+// ============================================
 
 function initBleControls() {
-    const connectButton = document.getElementById('connect-ring-btn');
-    if (!connectButton) {
-        return;
-    }
-
-    connectButton.addEventListener('click', async () => {
-        await handleConnect();
-    });
-
+    const btn = document.getElementById('connect-ring-btn');
+    if (btn) btn.addEventListener('click', () => handleConnect());
     setConnected(false);
 }
 
 function setConnectionStatus(state, label) {
-    const statusEl = document.getElementById('ble-connection-status');
-    const connectButton = document.getElementById('connect-ring-btn');
-    if (!statusEl || !connectButton) {
-        return;
-    }
-
-    statusEl.textContent = label;
-    statusEl.classList.remove('disconnected', 'connecting', 'connected');
-    statusEl.classList.add(state);
-
-    if (state === 'connected') {
-        connectButton.textContent = 'Disconnect Ring';
-        connectButton.disabled = false;
-    } else if (state === 'connecting') {
-        connectButton.textContent = 'Connecting...';
-        connectButton.disabled = true;
-    } else {
-        connectButton.textContent = 'Connect Ring';
-        connectButton.disabled = false;
-    }
-}
-
-function setSimulatorEnabled(enabled) {
-    const simulatorButtons = document.querySelectorAll('.gesture-btn');
-    simulatorButtons.forEach(button => {
-        button.disabled = !enabled;
-        button.classList.toggle('disabled', !enabled);
-    });
-}
-
-function handleRotation(direction, source = 'ble') {
-    const now = Date.now();
-
-    if (now - lastRotationTime < 200) {
-        return;
-    }
-
-    lastRotationTime = now;
-    processGestureInput(direction, source);
+    const el  = document.getElementById('ble-connection-status');
+    const btn = document.getElementById('connect-ring-btn');
+    if (!el || !btn) return;
+    el.textContent = label;
+    el.classList.remove('disconnected','connecting','connected');
+    el.classList.add(state);
+    if (state === 'connected')       { btn.textContent = 'Disconnect Ring'; btn.disabled = false; }
+    else if (state === 'connecting') { btn.textContent = 'Connecting…';     btn.disabled = true;  }
+    else                             { btn.textContent = 'Connect Ring';    btn.disabled = false; }
 }
 
 function setConnected(state) {
     AppState.isBleConnected = state;
-    setConnectionStatus(state ? 'connected' : 'disconnected', state ? 'Connected ✅' : 'Disconnected ❌');
-    setSimulatorEnabled(!state);
-
-    if (state) {
-        const demoStatus = document.getElementById('status');
-        if (demoStatus) {
-            demoStatus.innerText = 'Connected to Smart Ring (Live Hardware)';
-        }
-    }
+    setConnectionStatus(
+        state ? 'connected' : 'disconnected',
+        state ? 'Connected ✅' : 'Disconnected ❌'
+    );
 }
 
 async function handleConnect() {
-    if (AppState.isBleConnected) {
-        disconnectBLE();
-        return;
-    }
-
-    if (!navigator.bluetooth) {
-        addToTimeline('tap', 'ble-unavailable');
-        alert('Web Bluetooth is not supported in this browser. Use Chrome or Edge over HTTPS.');
-        return;
-    }
-
+    if (AppState.isBleConnected) { disconnectBLE(); return; }
+    if (!navigator.bluetooth) { alert('Web Bluetooth not supported. Use Chrome or Edge over HTTPS.'); return; }
     try {
-        setConnectionStatus('connecting', 'Connecting...');
-
+        setConnectionStatus('connecting', 'Connecting…');
         AppState.bleDevice = await navigator.bluetooth.requestDevice({
             filters: [{ name: BLE_CONFIG.deviceName }],
             optionalServices: [BLE_CONFIG.serviceUUID]
         });
-
         AppState.bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
-
-        const server = await AppState.bleDevice.gatt.connect();
-        const service = await server.getPrimaryService(BLE_CONFIG.serviceUUID);
+        const server   = await AppState.bleDevice.gatt.connect();
+        const service  = await server.getPrimaryService(BLE_CONFIG.serviceUUID);
         AppState.bleCharacteristic = await service.getCharacteristic(BLE_CONFIG.characteristicUUID);
-
         await AppState.bleCharacteristic.startNotifications();
         AppState.bleCharacteristic.addEventListener('characteristicvaluechanged', onBLEData);
-
         setConnected(true);
-    } catch (error) {
-        console.error('BLE connection failed:', error);
+        // Sync current mode to firmware on connect
+        await sendBLE(AppState.currentContext === 'media' ? 'MODE_DEFAULT' : 'MODE_PRESENTATION');
+    } catch (err) {
+        console.error('BLE connect failed:', err);
         setConnected(false);
     }
 }
 
 function disconnectBLE() {
-    if (AppState.bleDevice && AppState.bleDevice.gatt.connected) {
-        AppState.bleDevice.gatt.disconnect();
-    }
+    if (AppState.bleDevice && AppState.bleDevice.gatt.connected) AppState.bleDevice.gatt.disconnect();
 }
 
 function onDisconnected() {
-    if (!AppState.isBleConnected) {
-        return;
-    }
+    if (!AppState.isBleConnected) return;
     setConnected(false);
 }
 
 function onBLEData(event) {
-    const decoder = new TextDecoder('utf-8');
-    const cmd = decoder.decode(event.target.value).trim();
+    const cmd = new TextDecoder('utf-8').decode(event.target.value).trim();
     handleCommand(cmd);
 }
 
+// ─── handleCommand — THE CORE FIX ────────────────────────────────────────────
+//
+// Previously this function had hardcoded logic:
+//   const mediaCmds = ['PLAY_PAUSE','NEXT','PREV','VOL_UP','VOL_DOWN'];
+//   if (context === 'media' && mediaCmds.includes(cmd)) sendSystemMediaCommand(cmd);
+// This completely bypassed AppState.gestureMap, so remapping in the UI had
+// no effect on what actually happened when the ring fired a command.
+//
+// New flow:
+//  1. Firmware sends a fixed token (e.g. "VOL_UP")
+//  2. FIRMWARE_TOKEN_TO_INPUT maps it to the gestureMap input key ("rotate-cw")
+//  3. gestureMap[context]["rotate-cw"] gives the user's remapped action (e.g. "NEXT")
+//  4. ACTION_TO_BRIDGE maps that action to the OS-level command sent to the bridge
+//  5. ACTION_TO_VISUAL gives the 3D animation style
+//
+// Now changing a dropdown in the Gesture Mapping view immediately affects what
+// the OS receives the next time the ring fires that gesture.
 function handleCommand(cmd) {
-    const commandToGesture = {
-        PLAY_PAUSE: 'tap',
-        NEXT: 'swipe-right',
-        PREV: 'swipe-left',
-        VOL_UP: 'rotate-right',
-        VOL_DOWN: 'rotate-left',
-        SLIDE_NEXT: 'rotate-right',
-        SLIDE_PREV: 'rotate-left',
-        SELECT: 'tap'
-    };
-
-    const mediaCommandMap = {
-        PLAY_PAUSE: 'PLAY_PAUSE',
-        NEXT: 'NEXT',
-        PREV: 'PREV',
-        VOL_UP: 'VOL_UP',
-        VOL_DOWN: 'VOL_DOWN'
-    };
-
-    const presentationCommandMap = {
-        SLIDE_NEXT: 'SCROLL_UP',
-        SLIDE_PREV: 'SCROLL_DOWN'
-    };
-
+    // Mode switches are firmware→web sync events, not remappable gestures
     if (cmd === 'MODE_DEFAULT') {
+        AppState.currentContext = 'media';
         switchContext('media');
-        processGestureInput('mode', 'ble');
+        processGestureInput('mode', 'MODE_DEFAULT', 'ring');
         return;
     }
-
     if (cmd === 'MODE_PRESENTATION') {
+        AppState.currentContext = 'presentation';
         switchContext('presentation');
-        processGestureInput('mode', 'ble');
+        processGestureInput('mode', 'MODE_PRESENTATION', 'ring');
         return;
     }
 
-    if (AppState.currentContext === 'media') {
-        const mediaCommand = mediaCommandMap[cmd];
-        if (mediaCommand) {
-            sendSystemMediaCommand(mediaCommand);
-        }
-    }
-
-    if (AppState.currentContext === 'presentation') {
-        const presentationCommand = presentationCommandMap[cmd];
-        if (presentationCommand) {
-            sendSystemMediaCommand(presentationCommand);
-        }
-    }
-
-    const mappedGesture = commandToGesture[cmd];
-    if (!mappedGesture) {
+    // Step 1: firmware token → gestureMap input key
+    const inputKey = FIRMWARE_TOKEN_TO_INPUT[cmd];
+    if (!inputKey) {
+        console.warn('[BLE] Unknown command:', cmd);
         return;
     }
 
-    if (mappedGesture === 'rotate-left' || mappedGesture === 'rotate-right') {
-        handleRotation(mappedGesture, 'ble');
+    // Step 2: gestureMap input key → user's remapped action
+    const ctx    = AppState.currentContext;
+    const action = AppState.gestureMap[ctx][inputKey];
+    if (!action) {
+        console.warn('[BLE] No mapping for', inputKey, 'in', ctx);
         return;
     }
 
-    processGestureInput(mappedGesture, 'ble');
+    // Step 3: send remapped action to OS via bridge
+    const bridgeCmd = ACTION_TO_BRIDGE[action];
+    if (bridgeCmd) {
+        sendSystemMediaCommand(bridgeCmd);
+    }
+
+    // Rotation rate-limit (UI visual only — bridge already fired above)
+    if (inputKey === 'rotate-cw' || inputKey === 'rotate-ccw') {
+        const now = Date.now();
+        if (now - lastRotationTime < 200) return;
+        lastRotationTime = now;
+    }
+
+    // Step 4: show visual + timeline using the resolved action
+    const visual = ACTION_TO_VISUAL[action] || 'tap';
+    processGestureInput(visual, action, 'ring');
 }
 
 async function sendSystemMediaCommand(command) {
@@ -1078,90 +862,29 @@ async function sendSystemMediaCommand(command) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ command })
         });
-    } catch (error) {
-        console.error('Media bridge error:', error);
+    } catch (e) {
+        console.error('Media bridge error:', e);
     }
 }
 
-function disposeLiveRing() {
-    if (!AppState.liveRingScene) {
-        return;
+async function sendBLE(message) {
+    if (!AppState.bleCharacteristic) return;
+    try {
+        await AppState.bleCharacteristic.writeValueWithResponse(new TextEncoder().encode(message));
+    } catch (e) {
+        console.error('BLE write failed:', e);
     }
-
-    const { renderer } = AppState.liveRingScene;
-    const container = document.getElementById('live-ring-container');
-
-    if (renderer) {
-        renderer.dispose();
-    }
-
-    if (container) {
-        container.innerHTML = '';
-    }
-
-    AppState.liveRingScene = null;
 }
 
 // ============================================
-// UTILITY FUNCTIONS
+// WINDOW EXPORTS
 // ============================================
 
-// Format time
-function formatTime() {
-    const now = new Date();
-    return now.toLocaleTimeString();
-}
-
-// Log system events
-function logEvent(event, details) {
-    console.log(`[${formatTime()}] ${event}:`, details);
-}
-
-// ============================================
-// EXPORT TO WINDOW (for HTML onclick handlers)
-// ============================================
-
-window.enterExperience = enterExperience;
-window.backToLanding = backToLanding;
-window.simulateGesture = simulateGesture;
-window.switchView = switchView;
-window.switchContext = switchContext;
-window.connectRing = handleConnect;
-
-// ============================================
-// HCI PRINCIPLES LOGGER
-// ============================================
-
-// Log HCI principles being demonstrated
-console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║           GESTURE RING - HCI PRINCIPLES                   ║
-╠═══════════════════════════════════════════════════════════╣
-║ ✓ Visibility of System Status                            ║
-║   → Real-time gesture display & confidence levels         ║
-║                                                            ║
-║ ✓ Immediate Feedback                                      ║
-║   → Visual, animated feedback within 100-200ms            ║
-║                                                            ║
-║ ✓ Natural Mapping                                         ║
-║   → Gestures map to physical metaphors                    ║
-║                                                            ║
-║ ✓ Minimal Cognitive Load                                  ║
-║   → Only 4 core gestures to learn                         ║
-║                                                            ║
-║ ✓ Consistency                                             ║
-║   → Same gestures work across all contexts                ║
-║                                                            ║
-║ ✓ Learnability                                            ║
-║   → Visual demonstrations & practice mode                 ║
-║                                                            ║
-║ ✓ Accessibility                                           ║
-║   → Touchless control for motor accessibility             ║
-║                                                            ║
-║ ✓ Error Prevention                                        ║
-║   → Confidence thresholds & clear feedback                ║
-╚═══════════════════════════════════════════════════════════╝
-`);
-
-console.log('🎨 Design Philosophy: Gesture-first, calm, intuitive, premium');
-console.log('🚀 Ready for HCI evaluation and viva demonstration');
+window.enterExperience  = enterExperience;
+window.backToLanding    = backToLanding;
+window.switchView       = switchView;
+window.switchContext    = switchContext;
+window.cycleContextMode = cycleContextMode;
+window.connectRing      = handleConnect;
+window.testGesture      = testGesture;
+window.resetGestureMap  = resetGestureMap;
