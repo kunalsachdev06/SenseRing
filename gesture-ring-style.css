@@ -1752,6 +1752,63 @@ body {
 }
 
 /* ===================================
+   BORDER BEAM GLOW EFFECT
+   =================================== */
+
+@property --beam-angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.box-with-beam {
+    position: relative;
+    /* Ensure no visual overflow issues behind the rounded corners if content creeps */
+}
+
+/* Creates a clipped pseudo-border matching parent's border radius exactly */
+.box-with-beam::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 2px; /* Border thickness */
+    pointer-events: none;
+    z-index: 10;
+    
+    /* Rotating conic gradient mimicking the magicUI border beam */
+    background: conic-gradient(
+        from var(--beam-angle) at 50% 50%,
+        transparent 0%,
+        transparent 15%,
+        rgba(239, 68, 68, 1) 25%, /* Red-500 glow */
+        transparent 35%,
+        transparent 65%,
+        rgba(59, 130, 246, 1) 75%, /* Blue-500 glow */
+        transparent 85%,
+        transparent 100%
+    ) border-box;
+
+    /* Mask to hollow out the inner area */
+    mask: 
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+
+    /* Fallback support for non Chromium 128+ browsers without @property */
+    animation: border-beam-spin 6s linear infinite;
+}
+
+@keyframes border-beam-spin {
+    from { --beam-angle: 0deg; }
+    to { --beam-angle: 360deg; }
+}
+
+/* ===================================
    RESPONSIVE: editor grid + tester
    =================================== */
 

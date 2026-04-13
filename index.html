@@ -89,8 +89,8 @@
                         <h2>Ring Visualization</h2>
                         <p class="panel-subtitle">Real-time gesture detection and feedback</p>
                     </div>
-                    <div id="live-ring-container" class="live-ring-viz"></div>
-                    <div class="gesture-status">
+                    <div id="live-ring-container" class="live-ring-viz box-with-beam"></div>
+                    <div class="gesture-status box-with-beam">
                         <div class="status-label">Current Gesture</div>
                         <div class="status-value" id="current-gesture">Idle</div>
                         <div class="status-confidence">
@@ -103,7 +103,7 @@
                     </div>
 
                     <!-- Active mapping badges for current mode -->
-                    <div class="live-mapping-section">
+                    <div class="live-mapping-section box-with-beam">
                         <div class="live-mapping-header">
                             <!-- Quick mode toggle -->
                             <span class="live-mapping-title">Active Mapping</span>
@@ -128,7 +128,7 @@
                     </div>
 
                     <div class="response-area">
-                        <div class="response-card" id="response-display">
+                        <div class="response-card box-with-beam" id="response-display">
                             <div class="response-icon">🤚</div>
                             <div class="response-text">Waiting for gesture input…</div>
                             <div class="response-details">
@@ -143,14 +143,14 @@
                             </div>
                         </div>
 
-                        <div class="feedback-timeline">
+                        <div class="feedback-timeline box-with-beam">
                             <h3>Feedback Timeline</h3>
                             <div id="timeline-items" class="timeline-list"></div>
                         </div>
                     </div>
 
                     <!-- Ring Tester: fires real pipeline actions per context -->
-                    <div class="gesture-simulator">
+                    <div class="gesture-simulator box-with-beam">
                         <div class="simulator-header">
                             <h3>Ring Tester</h3>
                             <span class="simulator-note">Fires actions through the active mapping</span>
@@ -197,7 +197,7 @@
 
                 <div class="mapping-editor-grid">
                     <!-- Media Mode editor -->
-                    <div class="mapping-editor-card">
+                    <div class="mapping-editor-card box-with-beam">
                         <div class="mapping-editor-title">
                             <span class="context-icon-sm">🎵</span>
                             Media Mode
@@ -206,7 +206,7 @@
                     </div>
 
                     <!-- Presentation Mode editor -->
-                    <div class="mapping-editor-card">
+                    <div class="mapping-editor-card box-with-beam">
                         <div class="mapping-editor-title">
                             <span class="context-icon-sm">📊</span>
                             Presentation Mode
@@ -218,7 +218,7 @@
                 <!-- Visual reference cards (read-only, no HCI jargon) -->
                 <div class="mapping-reference-header"><h3>Gesture Reference</h3></div>
                 <div class="mapping-grid">
-                    <div class="mapping-card">
+                    <div class="mapping-card box-with-beam">
                         <div class="mapping-visual"><div class="gesture-animation rotate-anim"></div></div>
                         <div class="mapping-content">
                             <h3>Rotate</h3>
@@ -229,7 +229,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mapping-card">
+                    <div class="mapping-card box-with-beam">
                         <div class="mapping-visual"><div class="gesture-animation tap-anim"></div></div>
                         <div class="mapping-content">
                             <h3>Tap</h3>
@@ -241,7 +241,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mapping-card">
+                    <div class="mapping-card box-with-beam">
                         <div class="mapping-visual"><div class="gesture-animation swipe-left-anim"></div></div>
                         <div class="mapping-content">
                             <h3>Long Press</h3>
@@ -276,7 +276,7 @@
 
                 <div class="context-content">
                     <!-- Media panel -->
-                    <div class="context-panel active" data-panel="media">
+                    <div class="context-panel active box-with-beam" data-panel="media">
                         <div class="context-visual">
                             <div class="mode-illustration media-ill"></div>
                         </div>
@@ -293,7 +293,7 @@
                     </div>
 
                     <!-- Presentation panel -->
-                    <div class="context-panel" data-panel="presentation">
+                    <div class="context-panel box-with-beam" data-panel="presentation">
                         <div class="context-visual">
                             <div class="mode-illustration presentation-ill"></div>
                         </div>
