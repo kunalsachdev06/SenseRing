@@ -42,11 +42,16 @@
                         <span>Context Aware</span>
                     </div>
                 </div>
-                <button class="cta-button" onclick="enterExperience()">
-                    <span>Enter Experience</span>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M7 3L14 10L7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
+                <button class="interactive-hover-btn" onclick="enterExperience()">
+                    <span class="ihb-text-default">Enter Experience</span>
+                    <div class="ihb-hover-content">
+                        <span>Enter Experience</span>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                    <div class="ihb-dot"></div>
                 </button>
             </div>
 
@@ -145,7 +150,10 @@
 
                         <div class="feedback-timeline box-with-beam">
                             <h3>Feedback Timeline</h3>
-                            <div id="timeline-items" class="timeline-list"></div>
+                            <div class="progressive-blur-wrapper">
+                                <div id="timeline-items" class="timeline-list"></div>
+                                <div class="progressive-blur-bottom"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -197,7 +205,7 @@
 
                 <div class="mapping-editor-grid">
                     <!-- Media Mode editor -->
-                    <div class="mapping-editor-card box-with-beam">
+                    <div class="mapping-editor-card border-beam-subtle">
                         <div class="mapping-editor-title">
                             <span class="context-icon-sm">🎵</span>
                             Media Mode
@@ -206,7 +214,7 @@
                     </div>
 
                     <!-- Presentation Mode editor -->
-                    <div class="mapping-editor-card box-with-beam">
+                    <div class="mapping-editor-card border-beam-subtle">
                         <div class="mapping-editor-title">
                             <span class="context-icon-sm">📊</span>
                             Presentation Mode
@@ -218,7 +226,7 @@
                 <!-- Visual reference cards (read-only, no HCI jargon) -->
                 <div class="mapping-reference-header"><h3>Gesture Reference</h3></div>
                 <div class="mapping-grid">
-                    <div class="mapping-card box-with-beam">
+                    <div class="mapping-card border-beam-subtle">
                         <div class="mapping-visual"><div class="gesture-animation rotate-anim"></div></div>
                         <div class="mapping-content">
                             <h3>Rotate</h3>
@@ -229,7 +237,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mapping-card box-with-beam">
+                    <div class="mapping-card border-beam-subtle">
                         <div class="mapping-visual"><div class="gesture-animation tap-anim"></div></div>
                         <div class="mapping-content">
                             <h3>Tap</h3>
@@ -241,7 +249,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mapping-card box-with-beam">
+                    <div class="mapping-card border-beam-subtle">
                         <div class="mapping-visual"><div class="gesture-animation swipe-left-anim"></div></div>
                         <div class="mapping-content">
                             <h3>Long Press</h3>

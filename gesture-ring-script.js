@@ -136,7 +136,36 @@ document.addEventListener('DOMContentLoaded', () => {
     setupContextSwitching();
     renderGestureMapEditor();
     renderLiveMappingBadges();
+    setupNavScrollShrink();
 });
+
+// ============================================
+// NAVBAR RESIZING ON SCROLL
+// ============================================
+
+function setupNavScrollShrink() {
+    const mainInterface = document.getElementById('main-interface');
+    const topNav = document.querySelector('.top-nav');
+    
+    if (!mainInterface || !topNav) return;
+
+    mainInterface.addEventListener('scroll', () => {
+        if (mainInterface.scrollTop > 50) {
+            topNav.classList.add('shrink');
+        } else {
+            topNav.classList.remove('shrink');
+        }
+    });
+
+    // Also check window scroll, in case the scrolling cascades differently on mobile
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            topNav.classList.add('shrink');
+        } else {
+            topNav.classList.remove('shrink');
+        }
+    });
+}
 
 // ============================================
 // PARTICLE BACKGROUND
@@ -728,7 +757,30 @@ function addToTimeline(gesture, action, source) {
 
 function initBleControls() {
     const btn = document.getElementById('connect-ring-btn');
-    if (btn) btn.addEventListener('click', () => handleConnect());
+    if (btn) {
+        btn.addEventListener('click', (e) => {
+            // Magic UI Ripple Effect
+            const rect = btn.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            ripple.style.width = `${size}px`;
+            ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            btn.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+
+            handleConnect();
+        });
+    }
     setConnected(false);
 }
 
