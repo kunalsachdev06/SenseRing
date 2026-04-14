@@ -30,15 +30,15 @@
                 </p>
                 <div class="hero-features">
                     <div class="feature-pill">
-                        <span class="feature-icon">✋</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon"><path d="M18 11V6a2 2 0 0 0-4 0v4"/><path d="M14 6V4a2 2 0 0 0-4 0v6"/><path d="M10 5V3a2 2 0 0 0-4 0v8"/><path d="M6 11V9a2 2 0 0 0-4 0v5c0 6.6 3.4 9 8 9h2c5 0 8-3.4 8-9v-4.5a1.5 1.5 0 0 0-3 0V11"/></svg>
                         <span>Gesture Recognition</span>
                     </div>
                     <div class="feature-pill">
-                        <span class="feature-icon">⚡</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                         <span>Real-time Feedback</span>
                     </div>
                     <div class="feature-pill">
-                        <span class="feature-icon">🎯</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                         <span>Context Aware</span>
                     </div>
                 </div>
@@ -164,28 +164,59 @@
                             <span class="simulator-note">Fires actions through the active mapping</span>
                         </div>
                         <div class="gesture-buttons">
+                            <!-- Custom Hand SVGs for literal finger physics -->
                             <button class="gesture-btn" onclick="testGesture('rotate-cw')">
-                                <span class="gesture-emoji">↻</span>
+                                <div class="gesture-sim rotate-cw">
+                                    <div class="sim-ring right"></div>
+                                    <div class="sim-hand">
+                                        <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                    </div>
+                                </div>
                                 <span>Rotate CW</span>
                             </button>
                             <button class="gesture-btn" onclick="testGesture('rotate-ccw')">
-                                <span class="gesture-emoji">↺</span>
+                                <div class="gesture-sim rotate-ccw">
+                                    <div class="sim-ring left"></div>
+                                    <div class="sim-hand">
+                                        <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                    </div>
+                                </div>
                                 <span>Rotate CCW</span>
                             </button>
                             <button class="gesture-btn" onclick="testGesture('tap-single')">
-                                <span class="gesture-emoji">👆</span>
+                                <div class="gesture-sim tap-single">
+                                    <div class="sim-hand">
+                                        <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                        <div class="sim-tip"></div>
+                                    </div>
+                                </div>
                                 <span>Single Tap</span>
                             </button>
                             <button class="gesture-btn" onclick="testGesture('tap-double')">
-                                <span class="gesture-emoji">👆👆</span>
+                                <div class="gesture-sim tap-double">
+                                    <div class="sim-hand">
+                                        <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                        <div class="sim-tip"></div>
+                                    </div>
+                                </div>
                                 <span>Double Tap</span>
                             </button>
                             <button class="gesture-btn" onclick="testGesture('tap-triple')">
-                                <span class="gesture-emoji">👆👆👆</span>
+                                <div class="gesture-sim tap-triple">
+                                    <div class="sim-hand">
+                                        <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                        <div class="sim-tip"></div>
+                                    </div>
+                                </div>
                                 <span>Triple Tap</span>
                             </button>
                             <button class="gesture-btn" onclick="testGesture('long-press')">
-                                <span class="gesture-emoji">✊</span>
+                                <div class="gesture-sim long-press">
+                                    <div class="sim-hand">
+                                        <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                        <div class="sim-tip"></div>
+                                    </div>
+                                </div>
                                 <span>Long Press</span>
                             </button>
                         </div>
@@ -207,7 +238,7 @@
                     <!-- Media Mode editor -->
                     <div class="mapping-editor-card border-beam-subtle">
                         <div class="mapping-editor-title">
-                            <span class="context-icon-sm">🎵</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="context-icon-sm"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                             Media Mode
                         </div>
                         <div id="map-editor-media" class="map-editor-rows"></div>
@@ -216,7 +247,7 @@
                     <!-- Presentation Mode editor -->
                     <div class="mapping-editor-card border-beam-subtle">
                         <div class="mapping-editor-title">
-                            <span class="context-icon-sm">📊</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="context-icon-sm"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg>
                             Presentation Mode
                         </div>
                         <div id="map-editor-presentation" class="map-editor-rows"></div>
@@ -227,7 +258,14 @@
                 <div class="mapping-reference-header"><h3>Gesture Reference</h3></div>
                 <div class="mapping-grid">
                     <div class="mapping-card border-beam-subtle">
-                        <div class="mapping-visual"><div class="gesture-animation rotate-anim"></div></div>
+                        <div class="mapping-visual" style="justify-content: center;">
+                            <div class="gesture-sim rotate-cw" style="transform: scale(1.5);">
+                                <div class="sim-ring right"></div>
+                                <div class="sim-hand">
+                                    <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mapping-content">
                             <h3>Rotate</h3>
                             <p class="mapping-description">Turn the ring on your finger clockwise or counter-clockwise. Direction determines the action.</p>
@@ -238,7 +276,14 @@
                         </div>
                     </div>
                     <div class="mapping-card border-beam-subtle">
-                        <div class="mapping-visual"><div class="gesture-animation tap-anim"></div></div>
+                        <div class="mapping-visual" style="justify-content: center;">
+                            <div class="gesture-sim tap-single" style="transform: scale(1.5);">
+                                <div class="sim-hand">
+                                    <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                    <div class="sim-tip"></div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mapping-content">
                             <h3>Tap</h3>
                             <p class="mapping-description">Press the button on the ring once, twice, or three times. Timing window: 350 ms between taps.</p>
@@ -250,7 +295,14 @@
                         </div>
                     </div>
                     <div class="mapping-card border-beam-subtle">
-                        <div class="mapping-visual"><div class="gesture-animation swipe-left-anim"></div></div>
+                        <div class="mapping-visual" style="justify-content: center;">
+                            <div class="gesture-sim long-press" style="transform: scale(1.5);">
+                                <div class="sim-hand">
+                                    <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
+                                    <div class="sim-tip"></div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mapping-content">
                             <h3>Long Press</h3>
                             <p class="mapping-description">Hold the button for over 700 ms to switch between Media and Presentation modes.</p>
@@ -273,11 +325,11 @@
 
                 <div class="context-selector">
                     <button class="context-btn active" data-context="media">
-                        <span class="context-icon">🎵</span>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="context-icon"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                         <span>Media Control</span>
                     </button>
                     <button class="context-btn" data-context="presentation">
-                        <span class="context-icon">📊</span>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="context-icon"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg>
                         <span>Presentation Mode</span>
                     </button>
                 </div>
@@ -321,7 +373,38 @@
 
     </section>
 
+    <!-- ── Connection Cinematic Overlay ─────────────────────── -->
+    <div id="connection-overlay">
+        <div class="cyber-grid"></div>
+        <div class="sync-container">
+            <div class="sync-rings">
+                <div class="sync-ring-outer"></div>
+                <div class="sync-ring-inner"></div>
+                <div class="radar-scan"></div>
+                <div class="sync-core"></div>
+            </div>
+            <div class="sync-text-wrapper">
+                <h2 id="sync-title">BIOMETRIC SYNCING</h2>
+                <div id="sync-console">
+                    <p id="sync-log-0" class="hidden" style="color: #00d2ff; font-weight: bold;">&gt; Scanning local frequencies for gesture ring...</p>
+                    <p id="sync-log-1" class="hidden">&gt; Ring Found. Initiating Neural Handshake...</p>
+                    <p id="sync-log-2" class="hidden">&gt; Calibrating Spatial Matrix...</p>
+                    <p id="sync-log-3" class="hidden">&gt; Touchless Control Interlocked.</p>
+                    <p id="sync-log-error" class="hidden">&gt; ACCESS DENIED / DEVICE NOT FOUND.</p>
+                    
+                    <p id="sync-log-disconnect-1" class="hidden" style="color: #ffaa00; font-weight: bold;">&gt; Interruption Detected. Severing Link...</p>
+                    <p id="sync-log-disconnect-2" class="hidden">&gt; Decoupling Spatial Matrix...</p>
+                    <p id="sync-log-disconnect-3" class="hidden" style="color: #ff3366; font-weight: bold;">&gt; Touchless Control Offline.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="gesture-ring-script.js"></script>
 </body>
 </html>
+
+
+
+

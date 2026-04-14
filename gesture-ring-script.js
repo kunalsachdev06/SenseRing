@@ -116,10 +116,18 @@ const ACTION_TO_VISUAL = {
 };
 
 const COMMAND_ICONS = {
-    VOL_UP:'🔊', VOL_DOWN:'🔉', PLAY_PAUSE:'⏯️', NEXT:'⏭️', PREV:'⏮️',
-    SELECT:'✅', SLIDE_NEXT:'📄', SLIDE_PREV:'📄',
-    MODE_DEFAULT:'🎛️', MODE_PRESENTATION:'🎛️',
-    SCROLL_UP:'⬆️', SCROLL_DOWN:'⬇️'
+    VOL_UP:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>',
+    VOL_DOWN:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>',
+    PLAY_PAUSE:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>',
+    NEXT:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>',
+    PREV:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>',
+    SELECT:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    SLIDE_NEXT:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>',
+    SLIDE_PREV:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>',
+    MODE_DEFAULT:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="12" cy="12" r="3"></circle></svg>',
+    MODE_PRESENTATION:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>',
+    SCROLL_UP:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="16 12 12 8 8 12"></polyline><line x1="12" y1="16" x2="12" y2="8"></line></svg>',
+    SCROLL_DOWN:'<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg>'
 };
 
 let lastRotationTime = 0;
@@ -127,6 +135,19 @@ let lastRotationTime = 0;
 // ============================================
 // INITIALIZATION
 // ============================================
+
+document.addEventListener('click', (e) => {
+    // Close custom floating dropdowns when clicking outside
+    if (!e.target.closest('.custom-dropdown')) {
+        document.querySelectorAll('.custom-dropdown-options.show').forEach(el => {
+            el.classList.remove('show');
+            el.parentElement.classList.remove('open');
+            // Reset z-index on the parent row to fix layout overlaps
+            const row = el.closest('.map-editor-row');
+            if (row) row.style.zIndex = '';
+        });
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     initParticleBackground();
@@ -565,28 +586,74 @@ function renderGestureMapEditor() {
             lbl.className   = 'map-editor-label';
             lbl.textContent = inputLabel;
 
-            const sel = document.createElement('select');
-            sel.className = 'map-editor-select';
+            // Build custom dropdown structure
+            const selWrapper = document.createElement('div');
+            selWrapper.className = 'custom-dropdown';
+
+            const selValue = document.createElement('div');
+            selValue.className = 'custom-dropdown-value';
+            selWrapper.appendChild(selValue);
+            
+            const selIcon = document.createElement('span');
+            selIcon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            selValue.appendChild(selIcon);
+
+            const selText = document.createElement('span');
+            const defaultLabel = COMMAND_LABELS[map[inputKey]] || map[inputKey];
+            selText.textContent = defaultLabel;
+            selValue.insertBefore(selText, selIcon);
+
+            const dropdownOptions = document.createElement('div');
+            dropdownOptions.className = 'custom-dropdown-options';
 
             actions.forEach(action => {
-                const opt = document.createElement('option');
-                opt.value       = action;
+                const opt = document.createElement('div');
+                opt.className = 'custom-dropdown-option';
+                if (map[inputKey] === action) opt.classList.add('selected');
                 opt.textContent = COMMAND_LABELS[action] || action;
-                if (map[inputKey] === action) opt.selected = true;
-                sel.appendChild(opt);
+
+                opt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    // Update visuals
+                    dropdownOptions.querySelectorAll('.custom-dropdown-option').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    selText.textContent = opt.textContent;
+                    dropdownOptions.classList.remove('show');
+                    selWrapper.classList.remove('open');
+                    row.style.zIndex = '';
+                    
+                    // Update logic state immediately
+                    AppState.gestureMap[ctx][inputKey] = action;
+                    renderLiveMappingBadges();
+                    // No need to send to firmware — firmware sends fixed tokens,
+                    // the web app resolves them through gestureMap at receive time.
+                });
+                dropdownOptions.appendChild(opt);
             });
 
-            sel.addEventListener('change', () => {
-                // Update the in-memory map immediately — all subsequent BLE
-                // commands from the ring will now use this updated map.
-                AppState.gestureMap[ctx][inputKey] = sel.value;
-                renderLiveMappingBadges();
-                // No need to send to firmware — firmware sends fixed tokens,
-                // the web app resolves them through gestureMap at receive time.
+            selWrapper.appendChild(dropdownOptions);
+
+            // Toggle logic
+            selValue.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close other open custom dropdowns first
+                document.querySelectorAll('.custom-dropdown-options.show').forEach(el => {
+                    if (el !== dropdownOptions) {
+                        el.classList.remove('show');
+                        el.parentElement.classList.remove('open');
+                        const otherRow = el.closest('.map-editor-row');
+                        if (otherRow) otherRow.style.zIndex = '';
+                    }
+                });
+                
+                const isOpen = selWrapper.classList.toggle('open');
+                dropdownOptions.classList.toggle('show');
+                row.style.zIndex = isOpen ? '1000' : '';
             });
 
             row.appendChild(lbl);
-            row.appendChild(sel);
+            row.appendChild(selWrapper);
             container.appendChild(row);
         });
     });
@@ -725,9 +792,9 @@ function updateResponseCard(action) {
     const ctx      = AppState.currentContext;
 
     const label = COMMAND_LABELS[action] || action;
-    const icon  = COMMAND_ICONS[action] || '🤚';
+    const icon = COMMAND_ICONS[action] || '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>';
 
-    if (iconEl)   iconEl.textContent   = icon;
+    if (iconEl) iconEl.innerHTML = icon;
     if (textEl)   textEl.textContent   = label;
     if (actionEl) actionEl.textContent = label;
     if (modeEl)   modeEl.textContent   = ctx.charAt(0).toUpperCase() + ctx.slice(1);
@@ -800,31 +867,53 @@ function setConnected(state) {
     AppState.isBleConnected = state;
     setConnectionStatus(
         state ? 'connected' : 'disconnected',
-        state ? 'Connected ✅' : 'Disconnected ❌'
+        state ? 'Connected ⚡' : 'Disconnected ∅'
     );
 }
 
 async function handleConnect() {
     if (AppState.isBleConnected) { disconnectBLE(); return; }
     if (!navigator.bluetooth) { alert('Web Bluetooth not supported. Use Chrome or Edge over HTTPS.'); return; }
+    
+    // Set up cinematic elements
+    const overlay = document.getElementById('connection-overlay');
+    const log0 = document.getElementById('sync-log-0');
+    const logError = document.getElementById('sync-log-error');
+    const core = document.querySelector('.sync-core');
+
     try {
         setConnectionStatus('connecting', 'Connecting…');
+        
+        // PHASE 1: SCANNING immediately when clicked (runs behind native BLE picker)
+        overlay.classList.add('active');
+        overlay.classList.remove('error', 'success', 'calibrating');
+        log0.classList.remove('hidden');
+        logError.classList.add('hidden');
+
         AppState.bleDevice = await navigator.bluetooth.requestDevice({
             filters: [{ name: BLE_CONFIG.deviceName }],
             optionalServices: [BLE_CONFIG.serviceUUID]
         });
+
+        // USER SELECTED DEVICE - move to connect phase
         AppState.bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
         const server   = await AppState.bleDevice.gatt.connect();
-        const service  = await server.getPrimaryService(BLE_CONFIG.serviceUUID);
+        const service  = await server.getPrimaryService(BLE_CONFIG.serviceUUID); 
         AppState.bleCharacteristic = await service.getCharacteristic(BLE_CONFIG.characteristicUUID);
         await AppState.bleCharacteristic.startNotifications();
         AppState.bleCharacteristic.addEventListener('characteristicvaluechanged', onBLEData);
+        
+        // PHASE 2: SUCCESS CINEMATIC
+        await performSuccessCinematic();
+
         setConnected(true);
         // Sync current mode to firmware on connect
         await sendBLE(AppState.currentContext === 'media' ? 'MODE_DEFAULT' : 'MODE_PRESENTATION');
     } catch (err) {
         console.error('BLE connect failed:', err);
         setConnected(false);
+        // PHASE 3: ERROR CINEMATIC
+        await performErrorCinematic();
     }
 }
 
@@ -834,7 +923,10 @@ function disconnectBLE() {
 
 function onDisconnected() {
     if (!AppState.isBleConnected) return;
-    setConnected(false);
+
+    performDisconnectCinematic().then(() => {
+        setConnected(false);
+    });
 }
 
 function onBLEData(event) {
@@ -929,6 +1021,114 @@ async function sendBLE(message) {
 }
 
 // ============================================
+// Cinematic Animation Overlay Logic
+// ============================================
+
+async function performSuccessCinematic() {
+    return new Promise(resolve => {
+        const overlay = document.getElementById('connection-overlay');
+        const log0 = document.getElementById('sync-log-0');
+        const log1 = document.getElementById('sync-log-1');
+        const log2 = document.getElementById('sync-log-2');
+        const log3 = document.getElementById('sync-log-3');
+        const core = document.querySelector('.sync-core');
+        const logs = document.querySelectorAll('#sync-console p');
+
+        // Note: Overlay is already active from phase 1
+        
+        // Hide log0 quickly and start handshake
+        setTimeout(() => { 
+            log0.classList.add('hidden');
+            log1.classList.remove('hidden'); 
+        }, 300);
+        
+        // Step 2: Calibrating Space
+        setTimeout(() => { 
+            log2.classList.remove('hidden'); 
+            overlay.classList.add('calibrating');
+        }, 1500);
+        
+        // Step 3: Success Core Burst
+        setTimeout(() => { 
+            log3.classList.remove('hidden'); 
+            overlay.classList.remove('calibrating');
+            overlay.classList.add('success');
+            if(core) core.classList.add('burst');
+        }, 2800);
+        
+        // End Cinematic Fadeout
+        setTimeout(() => {
+            overlay.classList.remove('active', 'success');
+            setTimeout(() => {
+                logs.forEach(log => log.classList.add('hidden'));
+                if(core) core.classList.remove('burst');
+                resolve();
+            }, 600); // Overlay CSS transition time
+        }, 4000);
+    });
+}
+
+async function performErrorCinematic() {
+    return new Promise(resolve => {
+        const overlay = document.getElementById('connection-overlay');
+        const logError = document.getElementById('sync-log-error');
+        const logs = document.querySelectorAll('#sync-console p');
+
+        // ERROR visuals
+        overlay.classList.add('error');
+        logError.classList.remove('hidden');
+        
+        // Hide scanning log if it was visible
+        const log0 = document.getElementById('sync-log-0');
+        if (log0) log0.classList.add('hidden');
+        
+        setTimeout(() => {
+            overlay.classList.remove('active', 'error');
+            setTimeout(() => {
+                logs.forEach(log => log.classList.add('hidden'));
+                resolve();
+            }, 600);
+        }, 1800); // Display error state briefly
+    });
+}
+
+async function performDisconnectCinematic() {
+    return new Promise(resolve => {
+        const overlay = document.getElementById('connection-overlay');
+        const log0 = document.getElementById('sync-log-0');
+        const log1 = document.getElementById('sync-log-disconnect-1');
+        const log2 = document.getElementById('sync-log-disconnect-2');
+        const log3 = document.getElementById('sync-log-disconnect-3');
+        const logs = document.querySelectorAll('#sync-console p');
+
+        // Reset state & show overlay
+        logs.forEach(log => log.classList.add('hidden'));
+        overlay.classList.remove('success', 'error', 'calibrating');
+        overlay.classList.add('active', 'disconnecting');
+        
+        // Step 1: Warning
+        setTimeout(() => { log1.classList.remove('hidden'); }, 100);
+        
+        // Step 2: Sever matrix
+        setTimeout(() => { log2.classList.remove('hidden'); }, 1000);
+        
+        // Step 3: Offline
+        setTimeout(() => { 
+            log3.classList.remove('hidden'); 
+        }, 1900);
+        
+        // End Cinematic Fadeout
+        setTimeout(() => {
+            overlay.classList.remove('active', 'disconnecting');
+            setTimeout(() => {
+                logs.forEach(log => log.classList.add('hidden'));
+                resolve();
+            }, 600); // Wait for overlay to fade before resolving
+        }, 3200);
+    });
+}
+
+// ============================================
 // WINDOW EXPORTS
 // ============================================
 
@@ -940,3 +1140,11 @@ window.cycleContextMode = cycleContextMode;
 window.connectRing      = handleConnect;
 window.testGesture      = testGesture;
 window.resetGestureMap  = resetGestureMap;
+
+
+
+
+
+
+
+
