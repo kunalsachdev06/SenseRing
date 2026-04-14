@@ -258,8 +258,8 @@
                 <div class="mapping-reference-header"><h3>Gesture Reference</h3></div>
                 <div class="mapping-grid">
                     <div class="mapping-card border-beam-subtle">
-                        <div class="mapping-visual" style="justify-content: center;">
-                            <div class="gesture-sim rotate-cw" style="transform: scale(1.5);">
+                        <div class="mapping-visual visual-center">
+                            <div class="gesture-sim rotate-cw scale-15">
                                 <div class="sim-ring right"></div>
                                 <div class="sim-hand">
                                     <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
@@ -276,8 +276,8 @@
                         </div>
                     </div>
                     <div class="mapping-card border-beam-subtle">
-                        <div class="mapping-visual" style="justify-content: center;">
-                            <div class="gesture-sim tap-single" style="transform: scale(1.5);">
+                        <div class="mapping-visual visual-center">
+                            <div class="gesture-sim tap-single scale-15">
                                 <div class="sim-hand">
                                     <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
                                     <div class="sim-tip"></div>
@@ -295,8 +295,8 @@
                         </div>
                     </div>
                     <div class="mapping-card border-beam-subtle">
-                        <div class="mapping-visual" style="justify-content: center;">
-                            <div class="gesture-sim long-press" style="transform: scale(1.5);">
+                        <div class="mapping-visual visual-center">
+                            <div class="gesture-sim long-press scale-15">
                                 <div class="sim-hand">
                                     <svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14 11V4a2 2 0 0 0-4 0v9"/><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M10 13H8a3 3 0 0 0-3 3v2a8 8 0 0 0 16 0v-5a3 3 0 0 0-3-3h-4"/></svg>
                                     <div class="sim-tip"></div>
@@ -386,15 +386,15 @@
             <div class="sync-text-wrapper">
                 <h2 id="sync-title">BIOMETRIC SYNCING</h2>
                 <div id="sync-console">
-                    <p id="sync-log-0" class="hidden" style="color: #00d2ff; font-weight: bold;">&gt; Scanning local frequencies for gesture ring...</p>
+                    <p id="sync-log-0" class="hidden sync-info">&gt; Scanning local frequencies for gesture ring...</p>
                     <p id="sync-log-1" class="hidden">&gt; Ring Found. Initiating Neural Handshake...</p>
                     <p id="sync-log-2" class="hidden">&gt; Calibrating Spatial Matrix...</p>
                     <p id="sync-log-3" class="hidden">&gt; Touchless Control Interlocked.</p>
                     <p id="sync-log-error" class="hidden">&gt; ACCESS DENIED / DEVICE NOT FOUND.</p>
                     
-                    <p id="sync-log-disconnect-1" class="hidden" style="color: #ffaa00; font-weight: bold;">&gt; Interruption Detected. Severing Link...</p>
+                    <p id="sync-log-disconnect-1" class="hidden sync-warn">&gt; Interruption Detected. Severing Link...</p>
                     <p id="sync-log-disconnect-2" class="hidden">&gt; Decoupling Spatial Matrix...</p>
-                    <p id="sync-log-disconnect-3" class="hidden" style="color: #ff3366; font-weight: bold;">&gt; Touchless Control Offline.</p>
+                    <p id="sync-log-disconnect-3" class="hidden sync-critical">&gt; Touchless Control Offline.</p>
                 </div>
             </div>
         </div>
@@ -404,6 +404,9 @@
     <script src="gesture-ring-script.js"></script>
 </body>
 </html>
+
+
+
 
 
 

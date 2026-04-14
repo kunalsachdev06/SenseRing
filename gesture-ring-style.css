@@ -2524,3 +2524,12 @@ body {
 @keyframes spin-forward { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 @keyframes spin-reverse { 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
 
+/* Utility classes to replace inline styles */
+.visual-center { justify-content: center; }
+.scale-15 { transform: scale(1.5); }
+
+/* Custom log warning/critical colors */
+.sync-info { color: #00d2ff; font-weight: bold; }
+.sync-warn { color: #ffaa00; font-weight: bold; }
+.sync-critical { color: #ff3366; font-weight: bold; }
+
