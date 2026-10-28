@@ -5,3 +5,4 @@ __pycache__/
 tests/*.exe
 tests/ring_logic_test
 *.zip
+!SenseRing-Touch-Firmware.zip

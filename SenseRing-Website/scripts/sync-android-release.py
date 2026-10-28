@@ -6,13 +6,24 @@ import re
 import shutil
 
 ROOT = Path(__file__).resolve().parent.parent
-ANDROID = ROOT.parent / "Android"
+
+def find_android_project(parent):
+    """Support this repository and the original combined source layout."""
+    for name in ("SenseRing-Android", "Android"):
+        candidate = parent / name
+        if (candidate / "app/build.gradle.kts").is_file():
+            return candidate
+    raise FileNotFoundError(
+        "Android project not found. Expected a sibling named SenseRing-Android "
+        "or Android containing app/build.gradle.kts."
+    )
 
 def main():
-    source = (ANDROID / "app/build.gradle.kts").read_text(encoding="utf-8")
+    android = find_android_project(ROOT.parent)
+    source = (android / "app/build.gradle.kts").read_text(encoding="utf-8")
     version = re.search(r'versionName\s*=\s*"([0-9.]+)"', source).group(1)
-    apk = ANDROID / "outputs" / f"SenseRing-Android-{version}.apk"
-    capture = ANDROID / "screenshots/Dashboard-dark.png"
+    apk = android / "outputs" / f"SenseRing-Android-{version}.apk"
+    capture = android / "screenshots/Dashboard-dark.png"
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     assert f"downloads/{apk.name}" in html, "Website APK link and app version differ"
     assert apk.is_file() and capture.is_file(), "Build/package Android and capture its dashboard first"

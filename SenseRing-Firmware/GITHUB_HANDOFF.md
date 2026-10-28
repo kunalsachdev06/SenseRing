@@ -6,4 +6,4 @@ Upload the extracted files, including dotfiles and the Gradle wrapper where pres
 
 The combined source handoff also contains cross-project wiring/protocol, troubleshooting, upload and package-validation documents. Current firmware has no battery telemetry or charging implementation; fixed UI battery display values are not measurements. See VALIDATION.md for recorded checks and limits.
 
-SOURCE_MANIFEST_SHA256.json covers this source snapshot. Its hashes refer to the supplied files before Git newline conversion or subsequent edits.
+SOURCE_MANIFEST_SHA256.json covers this source snapshot using the Git blob bytes stored in the repository. Text line endings follow Git normalization; Windows checkout line endings can differ. The manifest identifies its hash basis explicitly and excludes itself.

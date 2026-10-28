@@ -61,7 +61,7 @@ python scripts/prepare-runtime.py
 python scripts/package-release.py
 ```
 
-Python 3 is only needed for these packaging helpers. Runtime preparation verifies a pinned Node.js binary; packaging includes its license. The APK and firmware ZIP already supplied in downloads are the matching releases. After changing Android in a combined checkout, build/package Android, then run `python scripts/sync-android-release.py` before packaging the website. In separate repositories, that optional sync helper expects the Android project as a sibling named Android; otherwise copy the released APK/screenshot and update download metadata explicitly.
+Python 3 is only needed for these packaging helpers. Runtime preparation verifies a pinned Node.js binary; packaging includes its license. The APK and firmware ZIP already supplied in downloads are the matching releases. After changing Android, build/package Android, then run `python scripts/sync-android-release.py` before packaging the website. The optional sync helper finds a sibling named SenseRing-Android in this repository, or Android in the original combined layout. Otherwise, copy the released APK/screenshot and update download metadata explicitly.
 
 ## Source map
 
