@@ -1,0 +1,13 @@
+{
+  "name": "sensering-touch-dashboard",
+  "version": "3.5.2",
+  "private": true,
+  "description": "SenseRing touch dashboard and local Windows companion",
+  "scripts": {
+    "start": "node local-media-bridge.js",
+    "build": "node scripts/build-site.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check gesture-ring-script.js && node --check sense-ring-core.js && node --check product-state.js && node --check companion-state.js && node --check theme.js && node --check ring-visual.js && node --check android-experience.js && node --check local-media-bridge.js"
+  },
+  "engines": { "node": ">=22" }
+}

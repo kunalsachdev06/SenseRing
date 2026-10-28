@@ -1,0 +1,11 @@
+dist/
+.runtime/
+node_modules/
+runtime/node.exe
+runtime/*.download
+*.log
+artifacts/
+__pycache__/
+.env
+.env.*
+!.env.example

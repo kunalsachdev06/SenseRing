@@ -1,0 +1,7 @@
+.build*/
+.downloads/
+.arduino-user/
+__pycache__/
+tests/*.exe
+tests/ring_logic_test
+*.zip

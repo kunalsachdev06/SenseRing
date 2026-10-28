@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SenseRing</string>
+    <string name="presentation_access_description">Lets your SenseRing send taps, swipes and arrow actions in any unlocked app, or only in one app you choose. It checks the foreground app name without reading or storing screen text. Music controls do not need this permission.</string>
+</resources>

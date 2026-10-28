@@ -1,0 +1,19 @@
+{
+  ".gitattributes": "56bc630ed7f1a8f82fe8b09ee35f943e96295703b98dd54ef526b8195e830ae6",
+  ".gitignore": "d0f114291e7ece54b68f408ed81eb96606a39f316f6fb9f3c911517b4ea747f4",
+  "BLE_PROTOCOL.md": "8501e78efa7a2d18e4a6be5abd4f97aee14d12488e2b8ec253879f60bc04a12c",
+  "Diagnostics/SenseRing_ButtonCheck/SenseRing_ButtonCheck.ino": "0b5fccc84c1337851eefffd6325e85ca5711d482bbc22de9ecf6c6c8efdf3ef0",
+  "Diagnostics/SenseRing_PinCheck/README.md": "52c8e692686184131a84d731a5775092693b6c228ec11f5ce6c247f5c0b8ddae",
+  "Diagnostics/SenseRing_PinCheck/SenseRing_PinCheck.ino": "a83e7f633e8a4267cd197b0a31fb44334cd6da2909a54da13e9e7f68d6c28546",
+  "package_firmware.py": "9328a05d53b1d1efb7005f0746d51d3f8c9c47fb06f9465ae2b686d059a3516e",
+  "PIN_CONNECTIONS.md": "db3ef817377ed07a44f8150db9c3955c20ddd394b1b2a198d34c10be03a78b6f",
+  "README.md": "fded123724dbf61661620467656c7977da91e3b79facd496ecc2af78235a27e6",
+  "RIGHTS_AND_NOTICES.md": "2ab733e05d1e6a2cd242fa3aa9355103f8c696a8f0d5390af25fa49e75fd9dcd",
+  "RISK_REDUCTION.md": "7179b1f479b63c20872d248f383d02af2cbce9f9070641eff668d01e971fdff0",
+  "SenseRing_Touch/RingConfig.h": "89b06a169158e900597eae3e7cf759484af25adf7c988215b2cf6043303e5036",
+  "SenseRing_Touch/RingLogic.h": "664adf77e841823564f977cff9174377fee7edda10460bc5510d7e876a46fa1e",
+  "SenseRing_Touch/SenseRing_Touch.ino": "2587861f0dc36b2ee7dbe1ad7905ae9e0d94f86d3e1478a8ca52346c6d918c9e",
+  "tests/ring_logic_test.cpp": "404ec754c08ea3b757aad58c51cbf6fcb346b0de9dbca22d6644f69348d14802",
+  "TOUCH_FILTERING.md": "cdee3a88082481c0fcdbe2860a70c605cbec7ced914355835d2b72433d6f988d",
+  "VALIDATION.md": "72f934bd411f9766e0d6e7605b42eedce9da580668e9cf25a9b8b15c4801f3e9"
+}

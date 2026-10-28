@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="SenseRing brings music and presentation controls to your fingertips. Connect your ring and make each gesture yours.">
+<meta name="theme-color" content="#f4f2ed"><meta name="color-scheme" content="light dark">
+<title>SenseRing — Control at your fingertips</title>
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<script src="theme.js"></script><link rel="stylesheet" href="gesture-ring-style.css"><link rel="stylesheet" href="android-section.css">
+<script src="sense-ring-core.js" defer></script><script src="product-state.js" defer></script><script src="companion-state.js" defer></script><script src="ring-visual.js" defer></script><script src="android-experience.js" defer></script><script src="gesture-ring-script.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<section id="landing-page" class="section active" aria-label="SenseRing">
+<div class="tech-bg tech-bg--hero" aria-hidden="true">
+<svg class="tech-traces" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMin slice" focusable="false">
+<g class="trace-lines"><path d="M970 -20V100L900 170H760V250"/><path d="M1460 150H1260L1180 230V350"/><path d="M1460 640H1240L1160 720H960"/><path d="M1310 940V820L1230 740H1150"/><path d="M-20 740H160L240 660H400"/><path d="M80 -20V90L160 170H260"/><path d="M1460 390H1370L1310 450H1250"/><path d="M530 940V840L610 760H730"/></g>
+<g class="trace-nodes"><circle cx="760" cy="250" r="3"/><circle cx="1180" cy="350" r="3"/><circle cx="960" cy="720" r="3"/><circle cx="1150" cy="740" r="3"/><circle cx="400" cy="660" r="3"/><circle cx="260" cy="170" r="3"/><circle cx="1250" cy="450" r="3"/><circle cx="730" cy="760" r="3"/></g>
+<g class="trace-crosses"><path d="M1080 126v12m-6-6h12M1360 542v12m-6-6h12M824 654v12m-6-6h12M334 758v12m-6-6h12M624 94v12m-6-6h12"/></g>
+<g class="trace-signals"><path class="trace-signal signal-a" pathLength="100" d="M970 -20V100L900 170H760V250"/><path class="trace-signal signal-b" pathLength="100" d="M1460 150H1260L1180 230V350"/><path class="trace-signal signal-c" pathLength="100" d="M1460 640H1240L1160 720H960"/><path class="trace-signal signal-d" pathLength="100" d="M-20 740H160L240 660H400"/></g>
+</svg>
+</div>
+<header class="site-header">
+<a class="brand" href="#landing-page" aria-label="SenseRing home"><span class="brand-mark" aria-hidden="true"></span><span>SenseRing<span class="brand-period">.</span></span></a>
+<nav class="landing-nav" aria-label="Main navigation"><button type="button" data-open-view="mapping">Your controls</button><a href="#android">Android app</a></nav>
+<button type="button" class="button small quiet-button setup-help" data-open-setup>Help</button>
+<div class="header-actions"><button type="button" class="icon-button theme-toggle" data-theme-toggle aria-label="Switch appearance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 13.2A8.5 8.5 0 0 1 10.8 3.5a8.6 8.6 0 1 0 9.7 9.7Z"/></svg></button><button type="button" class="button small primary" onclick="enterExperience()">Open dashboard <span aria-hidden="true">↗</span></button></div>
+</header>
+<main id="main-content" class="landing-main" tabindex="-1">
+<section class="hero">
+<div class="hero-copy"><p class="eyebrow">MUSIC. PRESENTATIONS. YOUR WAY.</p><h1>Control,<br><span>at your fingertips.</span></h1><p class="hero-description">Play your music. Move your slides.<br>Make each gesture yours.</p><div class="hero-actions"><button type="button" class="button primary" onclick="enterExperience()">Meet your controls <span aria-hidden="true">↗</span></button><a class="button text-button" href="#android">Android app <span aria-hidden="true">↓</span></a></div><div class="hero-capabilities"><span><i aria-hidden="true"></i>Touch control</span><span><i aria-hidden="true"></i>Windows companion</span><span><i aria-hidden="true"></i>Personal profiles</span></div></div>
+<div class="hero-product">
+<div id="ring-container-3d" class="model-stage"></div><div class="product-shadow" aria-hidden="true"></div>
+<div class="model-toolbar"><div class="model-actions"><div class="segmented model-segment" role="group" aria-label="Ring view"><button type="button" class="active" data-model="hero" data-model-view="auto" aria-pressed="true">Auto</button><button type="button" data-model="hero" data-model-view="ring" aria-pressed="false">Ring</button><button type="button" data-model="hero" data-model-view="inside" aria-pressed="false">Inside</button></div><button type="button" id="hero-motion-toggle" class="icon-button" aria-label="Pause ring animation" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg></button><button type="button" class="icon-button reset-view" data-reset-model="hero" aria-label="Reset ring view">↺</button></div></div>
+</div>
+</section>
+<section id="android" class="android-section" aria-labelledby="android-title" data-playing="false">
+<div class="android-heading"><div><p class="eyebrow">SENSERING FOR ANDROID</p><h2 id="android-title">Your phone.<br><span>A little more hands-free.</span></h2></div><div class="android-download"><a id="android-download-link" class="button primary" href="downloads/SenseRing-Android-1.3.0.apk" download>Download for Android <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></a><p>Android 10 or later <span aria-hidden="true">·</span> <span id="android-release-version">Version 1.3.0</span><br>No account. No terminal. Just your ring.</p></div></div>
+<div class="android-cinema" aria-label="SenseRing Android app preview">
+<div class="android-stage-grid" aria-hidden="true"></div>
+<div class="android-phone" aria-hidden="true"><div class="phone-camera"></div><img src="assets/android/dashboard-dark.png" alt="" width="1080" height="2400" loading="lazy" decoding="async"></div>
+<div class="android-story-caption" aria-hidden="true"><strong>Made for your phone.</strong><span>Your gestures. Your controls.</span></div>
+<div class="android-cinema-controls"><button id="android-motion-toggle" type="button" class="icon-button" aria-label="Pause phone preview" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg></button></div>
+</div>
+<div class="android-how"><article><span>01</span><div><h3>Install.</h3><p>Download the APK on your phone and allow this installation when Android asks.</p></div></article><article><span>02</span><div><h3>Connect.</h3><p>Open SenseRing, allow Nearby devices and choose SmartRing. Disconnect the laptop first.</p></div></article><article><span>03</span><div><h3>Make it yours.</h3><p>Set your gestures. Control music in the background, or enable app controls for taps and swipes.</p></div></article></div>
+<details class="android-details"><summary>Before you connect <span aria-hidden="true">＋</span></summary><div><p>Keep the ring powered. It connects to one device at a time. Music controls depend on your player; taps and swipes use optional Accessibility access while your screen is awake and unlocked.</p><p>If Android blocks Accessibility for this installation, use <strong>App info → Allow restricted settings</strong>, then enable SenseRing app controls. You can keep music controls without this permission.</p><p>Already have SenseRing? Install this update over your current app to keep your settings.</p><a id="android-checksum-link" href="downloads/SenseRing-Android-SHA256.txt" download>Download checksum <span aria-hidden="true">↗</span></a></div></details>
+</section>
+<footer class="site-footer"><a class="brand small-brand" href="#landing-page"><span class="brand-mark" aria-hidden="true"></span>SenseRing.</a><span>Small gestures. Everyday control.</span><a href="https://github.com/kunalsachdev06/SenseRing" target="_blank" rel="noopener noreferrer">Project <span aria-hidden="true">↗</span></a></footer>
+</main>
+</section>
+<section id="main-interface" class="section" hidden inert aria-hidden="true" tabindex="-1">
+<div class="tech-bg tech-bg--app" aria-hidden="true"></div>
+<header class="top-nav">
+<div class="toolbar-primary">
+<button type="button" class="brand brand-button" onclick="backToLanding()" aria-label="SenseRing home"><span class="brand-mark" aria-hidden="true"></span><span>SenseRing<span class="brand-period">.</span></span></button>
+<nav class="nav-tabs" role="tablist" aria-label="Dashboard navigation"><button type="button" id="nav-dashboard" class="nav-tab active" data-view="live" role="tab" aria-selected="true" aria-controls="live-view" tabindex="0">Dashboard</button><button type="button" id="nav-controls" class="nav-tab" data-view="mapping" role="tab" aria-selected="false" aria-controls="mapping-view" tabindex="-1">Controls</button></nav>
+</div>
+<section class="connection-bar" aria-label="Ring connection">
+<div class="connection-group"><span class="device-label">Ring</span><span class="ring-link-state"><span id="ble-connection-status" class="connection-status disconnected">Not connected</span><span id="ring-battery-indicator" class="ring-battery" role="img" aria-label="Ring connected. Battery indicator: 2 percent, fixed preview value." hidden><span class="battery-outline" aria-hidden="true"><span class="battery-charge"></span></span><span class="battery-percent">2%</span></span></span><button id="connect-ring-btn" class="button small primary" type="button">Connect ring</button><button id="sleep-ring-btn" class="button small quiet-button" type="button" disabled>Sleep</button></div>
+<p id="connection-error" class="connection-error" role="alert" hidden></p>
+</section>
+<div class="header-actions"><button type="button" class="button small quiet-button setup-help" data-open-setup>Help</button><button type="button" class="icon-button theme-toggle" data-theme-toggle aria-label="Switch appearance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 13.2A8.5 8.5 0 0 1 10.8 3.5a8.6 8.6 0 1 0 9.7 9.7Z"/></svg></button></div>
+</header>
+<div class="app-shell">
+<div id="live-view" class="view active" role="tabpanel" aria-labelledby="nav-dashboard">
+<div class="workspace-heading"><div><p class="eyebrow" data-profile-name>Everyday</p><h1>Dashboard</h1></div><button type="button" id="controls-state" class="state-chip" data-open-setup aria-label="Set up laptop controls">Checking controls</button></div>
+<div class="view-layout dashboard-layout">
+<div class="left-panel">
+<section class="surface response-card" id="response-display"><div class="panel-heading"><h2>In the moment</h2><span id="mode-sync" class="state-chip neutral-chip">Preview</span></div><div class="response-content"><div class="response-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="14"/><path d="m21 18 9 6-9 6Z"/></svg></div><div class="response-text">Waiting for your ring</div><p id="action-detail" class="action-detail">Ready</p></div><div class="response-details"><div class="detail-item"><span class="detail-label">Mode</span><span class="detail-value" id="current-mode">Music</span></div><div class="detail-item"><span class="detail-label">Last gesture</span><span class="detail-value" id="current-gesture">Idle</span></div><div class="detail-item"><span class="detail-label">Action</span><span class="detail-value" id="current-action">—</span></div></div></section>
+<details class="surface gesture-simulator"><summary><span>Try your controls</span><span class="preview-tag">Preview</span><span class="details-arrow" aria-hidden="true">⌄</span></summary><div class="gesture-buttons" aria-label="Control previews"></div><label class="touch-checkbox"><input id="tester-system-output" type="checkbox" disabled><span>Send previews to laptop</span></label></details>
+</div>
+<div class="right-panel">
+<section class="surface mapping-summary"><div class="panel-heading"><h2>Active controls</h2><div class="live-mode-toggle segmented" role="group" aria-label="Ring mode"><button type="button" class="live-mode-btn active" data-context="media">Music</button><button type="button" class="live-mode-btn" data-context="presentation">Slides</button></div></div><div id="live-mapping-badges" class="live-mapping-badges"></div></section>
+<section class="surface feedback-timeline"><div class="panel-heading"><h2>Activity</h2><button class="inline-link subtle" id="clear-activity-btn" type="button">Clear</button></div><div id="timeline-items" class="timeline-list" role="log" aria-label="Recent activity"></div></section>
+</div>
+</div>
+</div>
+<div id="mapping-view" class="view" role="tabpanel" aria-labelledby="nav-controls" hidden inert>
+<div class="workspace-heading"><div><p class="eyebrow">MADE FOR YOU</p><h1>Your controls</h1></div><button class="button small secondary" type="button" onclick="resetGestureMap()">Reset controls</button></div>
+<section class="surface profile-toolbar" aria-label="Profiles"><label for="profile-select">Profile<select id="profile-select"></select></label><div class="profile-actions"><button type="button" id="profile-new-btn" class="button small secondary">Save as</button><button type="button" id="profile-rename-btn" class="button small quiet-button">Rename</button><button type="button" id="profile-delete-btn" class="button small quiet-button" disabled>Delete</button><span class="toolbar-divider" aria-hidden="true"></span><button type="button" id="profile-import-btn" class="button small quiet-button">Import <span aria-hidden="true">↑</span></button><button type="button" id="profile-export-btn" class="button small quiet-button">Export <span aria-hidden="true">↓</span></button><input id="profile-import-file" type="file" accept=".json,application/json" hidden></div></section>
+<div class="mapping-editor-grid"><section class="surface mapping-editor-card"><div class="mapping-editor-title"><span class="mode-icon" aria-hidden="true">♫</span><h2>Music</h2><span class="count-label">5 gestures</span></div><div id="map-editor-media" class="map-editor-rows"></div></section><section class="surface mapping-editor-card"><div class="mapping-editor-title"><span class="mode-icon slides-mode-icon" aria-hidden="true">▣</span><h2>Presentations</h2><span class="count-label">3 groups</span></div><div id="map-editor-presentation" class="map-editor-rows"></div></section></div>
+</div>
+<footer class="app-footer"><span>SenseRing</span><span>Music · Presentations</span></footer>
+</div>
+</section>
+<dialog id="setup-dialog" class="setup-dialog" aria-labelledby="setup-title" aria-describedby="setup-intro">
+<div class="dialog-heading"><div><p class="eyebrow">LET'S GET CONNECTED</p><h2 id="setup-title">Set up SenseRing</h2></div><button type="button" class="icon-button" id="setup-close-btn" aria-label="Close setup">×</button></div>
+<p id="setup-intro" class="setup-intro">Use Chrome or Edge on a Windows 10 or 11 laptop (64-bit).</p>
+<p id="setup-browser-note" class="setup-browser-note" hidden>This browser cannot connect your ring. Open SenseRing in Chrome or Edge on your Windows laptop.</p>
+<div class="setup-connection" id="setup-connection" data-state="checking" role="status" aria-live="polite"><span class="setup-status-dot" aria-hidden="true"></span><div><h3 id="setup-status-title">Checking your laptop</h3><p id="setup-status-detail">Looking for the SenseRing companion.</p></div></div>
+<ol class="setup-steps">
+<li><span class="setup-step-number" aria-hidden="true">1</span><div><h3>Download your companion</h3><p>Everything you need is included. No separate software installation.</p><a href="downloads/SenseRing-Laptop-Companion.zip" download class="button small primary" id="setup-download-link">Download for Windows <span aria-hidden="true">↓</span></a></div></li>
+<li><span class="setup-step-number" aria-hidden="true">2</span><div><h3>Extract and open</h3><p>Choose <strong>Extract all</strong>, keep the folder somewhere permanent, then open <strong>Start-SenseRing.cmd</strong>. Your companion runs quietly and opens the website.</p></div></li>
+<li><span class="setup-step-number" aria-hidden="true">3</span><div><h3>Connect your ring</h3><p>Keep your finger clear while the ring starts. On the dashboard, choose <strong>Connect ring</strong> and select <strong>SmartRing</strong>. Leave this page open, then switch to your music or presentation app.</p></div></li>
+</ol>
+<details class="setup-troubleshooting"><summary>Need a hand? <span aria-hidden="true">⌄</span></summary><div>
+<h3>Connection is blocked</h3><p>Check this site's Bluetooth and local-network permissions in your browser, then retry. If your laptop is managed, ask its administrator about blocked permissions.</p>
+<h3>Controls are not responding</h3><p>Keep this page open and focus the app you want to control. If the companion is unavailable, retry below or close and reopen it from its folder.</p>
+<h3>Replacing an older companion</h3><p>Open <strong>Stop-SenseRing.cmd</strong> in the previous folder before starting the new copy.</p>
+<h3>Start automatically at sign-in</h3><p>Optionally open <strong>scripts → Install-Startup.cmd</strong> in your companion folder. Use <strong>Remove-Startup.cmd</strong> there to undo it. Otherwise open Start-SenseRing each time you use the ring.</p>
+</div></details>
+<div class="dialog-actions setup-actions"><button type="button" class="button secondary" id="setup-retry-btn">Retry connection</button><button type="button" class="button primary" id="setup-dashboard-btn">Open dashboard</button></div>
+</dialog>
+<dialog id="profile-dialog" aria-labelledby="profile-dialog-title"><form id="profile-form"><div class="dialog-heading"><h2 id="profile-dialog-title">Save profile</h2><button type="button" class="icon-button" id="profile-cancel-btn" aria-label="Close profile dialog">×</button></div><label for="profile-name">Profile name<input id="profile-name" name="profileName" maxlength="32" autocomplete="off" required></label><p id="profile-delete-message" class="dialog-message" hidden></p><p id="profile-error" class="connection-error" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="button secondary" id="profile-cancel-secondary">Cancel</button><button id="profile-submit-btn" type="submit" class="button primary">Save profile</button></div></form></dialog>
+<div id="connection-overlay" aria-hidden="true"><div class="sync-container"><div class="sync-core" aria-hidden="true"></div><h2 id="sync-title">Connecting</h2><div id="sync-console"><p id="sync-log-0" class="hidden"></p><p id="sync-log-1" class="hidden"></p><p id="sync-log-2" class="hidden"></p><p id="sync-log-3" class="hidden"></p><p id="sync-log-error" class="hidden"></p><p id="sync-log-disconnect-1" class="hidden"></p><p id="sync-log-disconnect-2" class="hidden"></p><p id="sync-log-disconnect-3" class="hidden"></p></div></div></div>
+<div id="capability-notice" class="capability-notice" hidden></div><div id="announcer" class="visually-hidden" role="status" aria-live="polite"></div><div id="toast" class="touch-toast" role="status" hidden></div>
+</body></html>
