@@ -12,7 +12,7 @@ COMPANION = PUBLIC + ["local-media-bridge.js", "Start-SenseRing.cmd", "Stop-Sens
 
 
 def files_under(folder):
-    return sorted(p for p in (ROOT / folder).rglob("*") if p.is_file() and not p.is_symlink() and not any(x.startswith(".") for x in p.relative_to(ROOT).parts))
+    return sorted(p for p in (ROOT / folder).rglob("*") if p.is_file() and not p.is_symlink() and not any(x.startswith(".") or x == "__pycache__" for x in p.relative_to(ROOT).parts))
 
 
 def archive(target, prefix, files):

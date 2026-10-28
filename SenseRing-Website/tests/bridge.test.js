@@ -97,13 +97,37 @@ test('all supported media tokens reach the injected executor without shell text'
 
 test('unapproved origins and null origins cannot read health or send actions', async t => {
     const f = await fixture(t);
-    for (const Origin of ['https://untrusted.example', 'null']) {
+    for (const Origin of ['https://untrusted.example', 'https://another-user.github.io', 'https://kunalsachdev06.github.io.untrusted.example', 'null']) {
         const response = await fetch(f.base + '/health', { headers: { Origin } });
         assert.equal(response.status, 403);
         assert.equal(response.headers.get('access-control-allow-origin'), null);
         assert.equal((await f.post('PLAY_PAUSE', { Origin })).status, 403);
     }
     assert.equal(f.delivered.length, 0);
+});
+
+test('GitHub Pages can read health and deliver authenticated music and slide commands', async t => {
+    const f = await fixture(t);
+    const Origin = 'https://kunalsachdev06.github.io';
+    const response = await fetch(f.base + '/health', { headers: { Origin, 'Sec-Fetch-Site': 'cross-site' } });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('access-control-allow-origin'), Origin);
+    const health = await response.json();
+    assert.equal(health.version, '2.3.2');
+    assert.equal(health.executorReady, true);
+    const preflight = await fetch(f.base + '/command', { method: 'OPTIONS', headers: {
+        Origin, 'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'content-type,x-sensering-token',
+        'Access-Control-Request-Private-Network': 'true'
+    } });
+    assert.equal(preflight.status, 204);
+    assert.equal(preflight.headers.get('access-control-allow-origin'), Origin);
+    assert.equal(preflight.headers.get('access-control-allow-private-network'), 'true');
+    assert.equal((await f.post('NEXT', { Origin, 'X-SenseRing-Token': '' })).status, 403);
+    assert.equal(f.delivered.length, 0);
+    for (const command of ['PLAY_PAUSE', 'VOL_UP', 'SLIDE_NEXT', 'SLIDE_PREV'])
+        assert.equal((await f.post(command, { Origin, 'Sec-Fetch-Site': 'cross-site' })).status, 200);
+    assert.deepEqual(f.delivered.map(item => item.command), ['PLAY_PAUSE', 'VOL_UP', 'SLIDE_NEXT', 'SLIDE_PREV']);
 });
 
 test('approved CORS preflight allows only the expected command headers', async t => {

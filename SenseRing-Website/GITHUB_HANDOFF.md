@@ -1,6 +1,6 @@
 # GitHub source handoff — 28 October 2026
 
-This directory can be the root of its own repository. Start with README.md. The matching versions are firmware 2.2.5-touch, website 3.5.2, Windows companion 2.3.1 and Android 1.3.0. Current control code and app assets are unchanged; documentation and portable source packaging were refreshed.
+This directory can be the root of its own repository. Start with README.md. The matching versions are firmware 2.2.5-touch, website 3.5.2, Windows companion 2.3.2 and Android 1.3.0. Current control code and app assets are unchanged; documentation and portable source packaging were refreshed.
 
 Upload the extracted files, including dotfiles and the Gradle wrapper where present. Existing .git history, private signing material, local SDK configuration, toolchains, caches, runtime logs and generated builds are excluded. The source tree grants no new open-source license; see RIGHTS_AND_NOTICES.md.
 

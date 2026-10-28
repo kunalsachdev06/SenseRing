@@ -52,7 +52,7 @@ npm run build
 
 Deploy **dist/**, not this source directory. The included vercel.json sets the correct build command and output. In a combined repository choose **Website** as the Vercel root; in a separate website repository use the repository root. Included download artifacts keep the current links usable. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
-The keyboard companion stays on the user's Windows PC. Its allowed origins include https://sense-ring.vercel.app and documented localhost origins. Set SENSERING_ALLOWED_ORIGINS to exact trusted origins for another host before starting the companion. No public keyboard-control server is required.
+The keyboard companion stays on the user's Windows PC. Companion 2.3.2 allows https://kunalsachdev06.github.io (including the SenseRing GitHub Pages site), https://sense-ring.vercel.app and documented localhost origins. Allow the browser's local-network request when prompted. Update an older companion by stopping it, downloading/extracting the current ZIP and starting that copy. Set SENSERING_ALLOWED_ORIGINS to exact trusted origins for another host before starting the companion. No public keyboard-control server is required.
 
 ## Rebuild downloadable releases
 

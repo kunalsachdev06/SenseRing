@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const readline = require('node:readline');
 const { spawn } = require('node:child_process');
 
-const VERSION = '2.3.1';
+const VERSION = '2.3.2';
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 3199;
 const COMMAND_TO_VK = Object.freeze({
@@ -16,6 +16,7 @@ const COMMAND_TO_VK = Object.freeze({
     SCROLL_UP: 0x21, SCROLL_DOWN: 0x22
 });
 const DEFAULT_ORIGINS = Object.freeze([
+    'https://kunalsachdev06.github.io',
     'https://sense-ring.vercel.app',
     ...[3199, 4173, 5500].flatMap(port => [`http://127.0.0.1:${port}`, `http://localhost:${port}`])
 ]);

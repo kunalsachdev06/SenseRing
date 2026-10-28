@@ -10,7 +10,7 @@ A touch-controlled wearable ring for music and presentations, with a web dashboa
 |---|---|---|
 | Ring firmware | 2.2.5-touch | [Firmware setup](SenseRing-Firmware/README.md) · [Pin connections](SenseRing-Firmware/PIN_CONNECTIONS.md) · [BLE protocol](SenseRing-Firmware/BLE_PROTOCOL.md) |
 | Website | 3.5.2 | [Website setup](SenseRing-Website/README.md) · [Deployment](SenseRing-Website/DEPLOYMENT.md) |
-| Windows companion | 2.3.1 | [Companion setup](SenseRing-Website/BRIDGE_SETUP.md) |
+| Windows companion | 2.3.2 | [Companion setup](SenseRing-Website/BRIDGE_SETUP.md) |
 | Android app | 1.3.0, Android 10+ | [App setup and builds](SenseRing-Android/README.md) · [Design references](SenseRing-Android/RESEARCH.md) |
 
 ## Get started

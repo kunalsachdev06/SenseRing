@@ -1,3 +1,9 @@
+# GitHub Pages companion compatibility — 28 October 2026
+
+- Companion 2.3.2 explicitly allows the origin `https://kunalsachdev06.github.io`; the existing Vercel and localhost origins remain supported.
+- 94 website tests: 93 passed, 1 skipped, 0 failed. The new origin check covers health access, preflight, required session-token protection, and music/slide command delivery to an injected mock executor. Unrelated GitHub Pages origins and deceptive suffix hosts remain rejected.
+- This verifies the software request path. It does not establish a physical ring-to-player test, browser permission approval or universal application compatibility. The companion must run on Windows; the hosted website cannot start it.
+
 # Website 3.5.2 — Android download refresh
 
 27 October 2026. The download now serves signed Android 1.3.0, including the vertical presentation default and retained horizontal option. The copied APK is verified against its actual SHA-256 by the sync helper. The website layout, firmware and control path are unchanged from 3.5.1. Android validation records 45 passing core/device checks and a signed 1.2 to 1.3 update.

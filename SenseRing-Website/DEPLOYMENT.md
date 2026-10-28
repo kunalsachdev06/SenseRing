@@ -26,7 +26,7 @@ Before deploying, confirm that `downloads/SenseRing-Laptop-Companion.zip` and `d
 
 Review and commit the website changes in the existing SenseRing repository, then use its existing Vercel project and deployment workflow. If importing this folder separately, set the Vercel root directory to the folder containing `package.json` and `vercel.json`.
 
-The existing public address is `https://sense-ring.vercel.app`. Local file edits do not update it. Treat a release as live only after the deployment succeeds and its actual URL has been checked.
+The GitHub Pages address is `https://kunalsachdev06.github.io/SenseRing/`; its root page forwards to `SenseRing-Website/`. Pushing to main triggers the configured Pages deployment. The earlier Vercel address is `https://sense-ring.vercel.app`; its deployment is separate. Local file edits do not update either host. Treat a release as live only after the deployment succeeds and its actual URL has been checked. Laptop controls require companion 2.3.2 or newer running locally and the browser's local-network permission; static hosting does not run the Windows companion.
 
 After deployment, check the landing page, Dashboard and Controls views in both appearances and at phone width. Check the ring/inside views, profiles, the companion archive at `downloads/SenseRing-Laptop-Companion.zip`, browser console and ring connection controls. Confirm Help/setup, automatic companion discovery, actual helper readiness and clearly labelled previews. The dashboard should keep engineering details out of the normal flow; setup guidance belongs in Help. The requested connected 2% battery icon remains a fixed visual placeholder.
 
